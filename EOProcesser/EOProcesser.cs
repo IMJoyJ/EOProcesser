@@ -107,10 +107,10 @@ namespace EOProcesser
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            string previousRootFolder = settings.RootFolder;
             formSettings formSettings = new(settings);
             if (formSettings.ShowDialog() == DialogResult.OK)
             {
-                string previousRootFolder = settings.RootFolder;
                 settings = formSettings.Settings;
                 
                 // Save the updated settings

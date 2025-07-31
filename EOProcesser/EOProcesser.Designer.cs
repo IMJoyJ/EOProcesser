@@ -28,36 +28,36 @@
         /// </summary>
         private void InitializeComponent()
         {
-            splitContainer1 = new SplitContainer();
+            splitContainer = new SplitContainer();
             tvFolderFiles = new TreeView();
             tvCode = new TreeView();
-            menuStrip1 = new MenuStrip();
-            ファイルToolStripMenuItem = new ToolStripMenuItem();
+            menuStrip = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
             settingsToolStripMenuItem = new ToolStripMenuItem();
             exitToolStripMenuItem = new ToolStripMenuItem();
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            splitContainer1.Panel1.SuspendLayout();
-            splitContainer1.Panel2.SuspendLayout();
-            splitContainer1.SuspendLayout();
-            menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
+            splitContainer.Panel1.SuspendLayout();
+            splitContainer.Panel2.SuspendLayout();
+            splitContainer.SuspendLayout();
+            menuStrip.SuspendLayout();
             SuspendLayout();
             // 
-            // splitContainer1
+            // splitContainer
             // 
-            splitContainer1.Dock = DockStyle.Bottom;
-            splitContainer1.Location = new Point(0, 31);
-            splitContainer1.Name = "splitContainer1";
+            splitContainer.Dock = DockStyle.Bottom;
+            splitContainer.Location = new Point(0, 31);
+            splitContainer.Name = "splitContainer";
             // 
-            // splitContainer1.Panel1
+            // splitContainer.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(tvFolderFiles);
+            splitContainer.Panel1.Controls.Add(tvFolderFiles);
             // 
-            // splitContainer1.Panel2
+            // splitContainer.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(tvCode);
-            splitContainer1.Size = new Size(805, 445);
-            splitContainer1.SplitterDistance = 268;
-            splitContainer1.TabIndex = 0;
+            splitContainer.Panel2.Controls.Add(tvCode);
+            splitContainer.Size = new Size(805, 445);
+            splitContainer.SplitterDistance = 268;
+            splitContainer.TabIndex = 0;
             // 
             // tvFolderFiles
             // 
@@ -78,20 +78,20 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.ImageScalingSize = new Size(20, 20);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { ファイルToolStripMenuItem });
-            menuStrip1.Location = new Point(0, 0);
-            menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new Size(805, 28);
-            menuStrip1.TabIndex = 1;
-            menuStrip1.Text = "menuStrip1";
+            menuStrip.ImageScalingSize = new Size(20, 20);
+            menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            menuStrip.Location = new Point(0, 0);
+            menuStrip.Name = "menuStrip1";
+            menuStrip.Size = new Size(805, 28);
+            menuStrip.TabIndex = 1;
+            menuStrip.Text = "menuStrip1";
             // 
-            // ファイルToolStripMenuItem
+            // fileToolStripMenuItem
             // 
-            ファイルToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
-            ファイルToolStripMenuItem.Name = "ファイルToolStripMenuItem";
-            ファイルToolStripMenuItem.Size = new Size(46, 24);
-            ファイルToolStripMenuItem.Text = "File";
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(46, 24);
+            fileToolStripMenuItem.Text = "File";
             // 
             // settingsToolStripMenuItem
             // 
@@ -112,27 +112,27 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(805, 476);
-            Controls.Add(splitContainer1);
-            Controls.Add(menuStrip1);
-            MainMenuStrip = menuStrip1;
+            Controls.Add(splitContainer);
+            Controls.Add(menuStrip);
+            MainMenuStrip = menuStrip;
             Name = "EOProcesser";
             Text = "ERAOCG Card Manager v0.1 by JoyJ";
             Load += EOProcesser_Load;
-            splitContainer1.Panel1.ResumeLayout(false);
-            splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
-            splitContainer1.ResumeLayout(false);
-            menuStrip1.ResumeLayout(false);
-            menuStrip1.PerformLayout();
+            splitContainer.Panel1.ResumeLayout(false);
+            splitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer).EndInit();
+            splitContainer.ResumeLayout(false);
+            menuStrip.ResumeLayout(false);
+            menuStrip.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private SplitContainer splitContainer1;
-        private MenuStrip menuStrip1;
-        private ToolStripMenuItem ファイルToolStripMenuItem;
+        private SplitContainer splitContainer;
+        private MenuStrip menuStrip;
+        private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem settingsToolStripMenuItem;
         private TreeView tvFolderFiles;

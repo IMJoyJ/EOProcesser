@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -15,13 +16,20 @@ namespace EOProcesser
         public ERAOCGCardManagerSettings Settings;
         public formSettings(ERAOCGCardManagerSettings settings)
         {
-            Settings = settings;
+            Settings = new ERAOCGCardManagerSettings();
+            // Create a deep copy of the settings using JSON serialization/deserialization
+            if (settings != null)
+            {
+                string json = JsonSerializer.Serialize(settings);
+                Settings = JsonSerializer.Deserialize<ERAOCGCardManagerSettings>(json) ?? Settings;
+            }
             InitializeComponent();
+            txtRootFolder.Text = Settings.RootFolder;
         }
 
         private void btnSelectRootFolder_Click(object sender, EventArgs e)
         {
-            using FolderBrowserDialog folderDialog = new FolderBrowserDialog();
+            using FolderBrowserDialog folderDialog = new();
             folderDialog.Description = "Select Root Folder";
             folderDialog.ShowNewFolderButton = true;
 
@@ -33,9 +41,13 @@ namespace EOProcesser
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
-                Settings.RootFolder = folderDialog.SelectedPath;
                 txtRootFolder.Text = Settings.RootFolder;
             }
+        }
+
+        private void txtRootFolder_TextChanged(object sender, EventArgs e)
+        {
+            Settings.RootFolder = txtRootFolder.Text;
         }
     }
 }

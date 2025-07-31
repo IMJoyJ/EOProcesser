@@ -41,6 +41,7 @@
             txtRootFolder.Name = "txtRootFolder";
             txtRootFolder.Size = new Size(787, 46);
             txtRootFolder.TabIndex = 0;
+            txtRootFolder.TextChanged += txtRootFolder_TextChanged;
             // 
             // label1
             // 
@@ -63,6 +64,7 @@
             // 
             // btnConfirm
             // 
+            btnConfirm.DialogResult = DialogResult.OK;
             btnConfirm.Location = new Point(896, 104);
             btnConfirm.Name = "btnConfirm";
             btnConfirm.Size = new Size(86, 58);
@@ -72,6 +74,7 @@
             // 
             // btnCancel
             // 
+            btnCancel.DialogResult = DialogResult.Cancel;
             btnCancel.Location = new Point(988, 104);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(86, 58);
