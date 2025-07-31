@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 using System.Collections;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace EOProcesser
 {
@@ -16,7 +18,7 @@ namespace EOProcesser
         abstract public List<TreeNode> GetTreeNodes();
     }
 
-    public class ERACodeSegment : ERACode, IEnumerable<ERACode>
+    public class ERACodeMultiLines : ERACode, IEnumerable<ERACode>
     {
         private int _indentation;
         public override int Indentation
@@ -41,8 +43,8 @@ namespace EOProcesser
         }
 
         internal readonly List<ERACode> codes = [];
-        internal ERACodeSegment? StartCode { get; set; }
-        internal ERACodeSegment? EndCode { get; set; }
+        virtual internal ERACodeMultiLines? StartCode { get; set; }
+        internal ERACodeMultiLines? EndCode { get; set; }
         protected virtual string GetNodeText()
         {
             if (StartCode != null)
@@ -60,8 +62,8 @@ namespace EOProcesser
             return "(NONE)";
         }
 
-        public ERACodeSegment() { }
-        public ERACodeSegment(IEnumerable<ERACode> initialCodes)
+        public ERACodeMultiLines() { }
+        public ERACodeMultiLines(IEnumerable<ERACode> initialCodes)
         {
             AddRange(initialCodes);
         }
@@ -89,8 +91,10 @@ namespace EOProcesser
 
         public void Add(string code)
         {
-            ERACodeLine line = new(code);
-            line.Indentation = this.Indentation;
+            ERACodeLine line = new(code)
+            {
+                Indentation = this.Indentation
+            };
             codes.Add(line);
         }
 
@@ -121,9 +125,8 @@ namespace EOProcesser
             }
         }
 
-        public IEnumerator<ERACode> GetEnumerator()
+        virtual public IEnumerator<ERACode> GetEnumerator()
         {
-            // 修复无限递归问题
             if (StartCode != null)
             {
                 yield return StartCode;
@@ -146,7 +149,7 @@ namespace EOProcesser
         }
     }
 
-    public class ERABlockSegment : ERACodeSegment
+    public class ERABlockSegment : ERACodeMultiLines
     {
         private int _indentation;
         public override int Indentation
@@ -168,9 +171,14 @@ namespace EOProcesser
                 }
             }
         }
-        new readonly ERACodeSegment StartCode;
+        protected override string GetNodeText()
+        {
+            return StartCode.ToString();
+        }
+        new readonly ERACodeMultiLines StartCode;
         public ERABlockSegment(string startCode, string? endCode = null, IEnumerable<ERACode>? initialCodes = null)
         {
+
             StartCode = [new ERACodeLine(startCode)];
             if (endCode != null)
             {
@@ -234,18 +242,11 @@ namespace EOProcesser
         public override string ToString()
         {
             string indentation = new('\t', Indentation);
-            return indentation + CodeLine.TrimStart();
+            return indentation + CodeLine.TrimStart() + "\r\n";
         }
     }
     public class ERAFuncSegment : ERABlockSegment
     {
-        new ERACodeSegment StartCode
-        {
-            get
-            {
-                return [new ERACodeLine($"@{FuncName}")];
-            }
-        }
         public string FuncName;
         public ERAFuncSegment(string funcName) : base($"@{funcName}")
         {
@@ -258,7 +259,8 @@ namespace EOProcesser
             FuncName = funcName;
         }
     }
-    public class ERACodeSelectCase(string condition) : ERABlockSegment($"SELECTCASE {condition}", "ENDSELECT")
+    public class ERACodeSelectCase(string condition)
+        : ERABlockSegment($"SELECTCASE {condition}", "ENDSELECT")
     {
         public string Condition { get; private set; } = condition;
 
@@ -269,26 +271,73 @@ namespace EOProcesser
             Add(subCase);
         }
 
-        public void AddCase(string caseValue, ERACodeSegment codeSegment)
+        public void AddCase(string? caseValue, ERACodeMultiLines codeSegment)
         {
-            ERACodeSelectCaseSubCase subCase = new(caseValue, codeSegment);
-            subCase.Indentation = this.Indentation + 1;
+            ERACodeSelectCaseSubCase subCase = new(caseValue, codeSegment)
+            {
+                Indentation = this.Indentation + 1
+            };
             Add(subCase);
         }
     }
 
-    public class ERACodeSelectCaseSubCase : ERABlockSegment
+    public partial class ERACodeSelectCaseSubCase : ERABlockSegment
     {
-        public string CaseValue { get; private set; }
+        public string? CaseValue { get; private set; }
 
-        public ERACodeSelectCaseSubCase(string caseValue)
-            : base($"CASE {caseValue}")
+        public ERACodeSelectCaseSubCase(string? caseValue)
+            : base(caseValue == null ? $"CASEELSE" : $"CASE {caseValue}")
         {
             CaseValue = caseValue;
         }
 
-        public ERACodeSelectCaseSubCase(string caseValue, ERACodeSegment codeSegment)
-            : base($"CASE {caseValue}")
+        public string? GetValue()
+        {
+            var valList = GetValueList();
+            if (valList.Count > 0)
+            {
+                return string.Join(", ", valList.Select((vk) => $"{vk.Key} = {vk.Value}"));
+            }
+            return "";
+        }
+        
+        public Dictionary<string, string> GetValueList()
+        {
+            string str = "";
+            Dictionary<string, string> valList = [];
+            for (int i = 0; i < codes.Count; i++)
+            {
+                string val = codes[i].ToString().TrimStart();
+                if (val.StartsWith("RETURN "))
+                {
+                    str += $"({val[7..]})";
+                    valList.Add("Value", str);
+                    break;
+                }
+                var m = SubCaseValueRegex().Match(val);
+                if (m.Success)
+                {
+                    if (m.Groups.Count == 1)
+                    {
+                        valList.Add("Value", m.Groups[1].Value.Trim());
+                    }
+                    else
+                    {
+                        valList[m.Groups[1].Value.Trim()] = m.Groups[2].Value.Trim();
+                    }
+                }
+            }
+            return valList;
+        }
+
+        protected override string GetNodeText()
+        {
+            var val = GetValue();
+            return $"{CaseValue ?? ""}({val})";
+        }
+
+        public ERACodeSelectCaseSubCase(string? caseValue, ERACodeMultiLines codeSegment)
+            : base(caseValue == null ? $"CASEELSE" : $"CASE {caseValue}")
         {
             CaseValue = caseValue;
 
@@ -301,6 +350,9 @@ namespace EOProcesser
 
         public ERACodeSelectCaseSubCase(string caseValue, string returnValue)
             : this(caseValue, [new ERACodeLine($"RETURN {returnValue}")]) { }
+
+        [GeneratedRegex(@"RESULTS?\s*[:=]\s*(.+)|RESULT\s*(\d+)\s*[:=]\s*(.+)")]
+        private static partial Regex SubCaseValueRegex();
     }
     public class ERACodeSIfSegment : ERABlockSegment
     {
@@ -324,6 +376,231 @@ namespace EOProcesser
         {
             Condition = condition;
             Add(code);
+        }
+    }
+    public class ERACodeIfSegment : ERABlockSegment, IEnumerable<ERACode>
+    {
+        private int _indentation;
+        public override int Indentation
+        {
+            get => _indentation;
+            set
+            {
+                _indentation = value;
+                foreach (var code in this)
+                {
+                    if (code != StartCode && code != EndCode)
+                    {
+                        code.Indentation = value + 1;
+                    }
+                    else
+                    {
+                        code.Indentation = value;
+                    }
+                }
+                foreach (var code in codes)
+                {
+                    code.Indentation = value + 1;
+                }
+                foreach (var code in elseSegments)
+                {
+                    code.Indentation = value;
+                }
+            }
+        }
+        public string Condition { get; private set; }
+        private List<ERACodeElseSegment> elseSegments = [];
+
+        public ERACodeIfSegment(string condition)
+            : base($"IF {condition}", "ENDIF")
+        {
+            Condition = condition;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            if (StartCode != null)
+            {
+                yield return StartCode;
+            }
+
+            foreach (var code in codes)
+            {
+                yield return code;
+            }
+
+            foreach (var segment in elseSegments)
+            {
+                yield return segment;
+            }
+
+            if (EndCode != null)
+            {
+                yield return EndCode;
+            }
+        }
+
+        override public IEnumerator<ERACode> GetEnumerator()
+        {
+            if (StartCode != null)
+            {
+                yield return StartCode;
+            }
+
+            foreach (var code in codes)
+            {
+                yield return code;
+            }
+
+            foreach (var segment in elseSegments)
+            {
+                yield return segment;
+            }
+
+            if (EndCode != null)
+            {
+                yield return EndCode;
+            }
+        }
+
+        public ERACodeIfSegment(string condition, IEnumerable<ERACode> codeBlock)
+            : base($"IF {condition}", "ENDIF", codeBlock)
+        {
+            Condition = condition;
+        }
+
+        public void AddElseIf(string condition, IEnumerable<ERACode> codeBlock)
+        {
+            ERACodeElseSegment elseIfSegment = new(condition, codeBlock)
+            {
+                Indentation = this.Indentation
+            };
+            elseSegments.Add(elseIfSegment);
+        }
+
+        public void AddElse(IEnumerable<ERACode> codeBlock)
+        {
+            ERACodeElseSegment elseSegment = new(null, codeBlock);
+            elseSegment.Indentation = this.Indentation;
+            elseSegments.Add(elseSegment);
+        }
+
+        public override List<TreeNode> GetTreeNodes()
+        {
+            TreeNode rootNode = new($"IF {Condition}")
+            {
+                Tag = this
+            };
+
+            // Add all child nodes except StartCode, EndCode, and ElseSegments
+            foreach (var code in this)
+            {
+                if (code != StartCode && code != EndCode && !elseSegments.Contains(code))
+                {
+                    foreach (var node in code.GetTreeNodes())
+                    {
+                        rootNode.Nodes.Add(node);
+                    }
+                }
+            }
+
+            // Add ElseSegments nodes
+            foreach (var elseSegment in elseSegments)
+            {
+                foreach (var node in elseSegment.GetTreeNodes())
+                {
+                    rootNode.Nodes.Add(node);
+                }
+            }
+
+            return [rootNode];
+        }
+    }
+
+    public class ERACodeElseSegment : ERABlockSegment
+    {
+        public string? Condition { get; private set; }
+
+        public ERACodeElseSegment(string? condition, IEnumerable<ERACode> codeBlock)
+            : base(condition == null ? "ELSE" : $"ELSEIF {condition}", null, codeBlock)
+        {
+            Condition = condition;
+        }
+
+        protected override string GetNodeText()
+        {
+            return Condition == null ? "ELSE" : $"ELSEIF {Condition}";
+        }
+    }
+    public class ERACodeForSegment : ERABlockSegment
+    {
+        public string Counter { get; private set; }
+        public string StartValue { get; private set; }
+        public string EndValue { get; private set; }
+
+        public ERACodeForSegment(string counter, string startValue, string endValue)
+            : base($"FOR {counter},{startValue},{endValue}", "NEXT")
+        {
+            Counter = counter;
+            StartValue = startValue;
+            EndValue = endValue;
+        }
+
+        public ERACodeForSegment(string counter, string startValue, string endValue, IEnumerable<ERACode> codeBlock)
+            : base($"FOR {counter},{startValue},{endValue}", "NEXT", codeBlock)
+        {
+            Counter = counter;
+            StartValue = startValue;
+            EndValue = endValue;
+        }
+    }
+    public class ERACodeWhileSegment : ERABlockSegment
+    {
+        public string Condition { get; private set; }
+
+        public ERACodeWhileSegment(string condition)
+            : base($"WHILE {condition}", "WEND")
+        {
+            Condition = condition;
+        }
+
+        public ERACodeWhileSegment(string condition, IEnumerable<ERACode> codeBlock)
+            : base($"WHILE {condition}", "WEND", codeBlock)
+        {
+            Condition = condition;
+        }
+    }
+    public class ERACodeDoSegment : ERABlockSegment
+    {
+        public string Condition { get; private set; }
+
+        public ERACodeDoSegment(string condition)
+            : base("DO", $"LOOP {condition}")
+        {
+            Condition = condition;
+        }
+
+        public ERACodeDoSegment(string condition, IEnumerable<ERACode> codeBlock)
+            : base("DO", $"LOOP {condition}", codeBlock)
+        {
+            Condition = condition;
+        }
+    }
+    
+    public class ERACodeRepeatSegment : ERABlockSegment
+    {
+        public string Condition { get; private set; }
+
+        public ERACodeRepeatSegment(string condition)
+            : base("REPEAT {condition}", $"REND")
+        {
+            Condition = condition;
+        }
+
+        public ERACodeRepeatSegment(string condition, IEnumerable<ERACode> codeBlock)
+            : base("REPEAT {condition}", $"REND", codeBlock)
+        {
+            Condition = condition;
         }
     }
     

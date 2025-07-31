@@ -29,11 +29,15 @@
         private void InitializeComponent()
         {
             splitContainer1 = new SplitContainer();
+            tvFolderFiles = new TreeView();
+            tvCode = new TreeView();
             menuStrip1 = new MenuStrip();
             ファイルToolStripMenuItem = new ToolStripMenuItem();
-            exitToolStripMenuItem = new ToolStripMenuItem();
             settingsToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
             menuStrip1.SuspendLayout();
             SuspendLayout();
@@ -43,9 +47,34 @@
             splitContainer1.Dock = DockStyle.Bottom;
             splitContainer1.Location = new Point(0, 31);
             splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(tvFolderFiles);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(tvCode);
             splitContainer1.Size = new Size(805, 445);
             splitContainer1.SplitterDistance = 268;
             splitContainer1.TabIndex = 0;
+            // 
+            // tvFolderFiles
+            // 
+            tvFolderFiles.Dock = DockStyle.Fill;
+            tvFolderFiles.Location = new Point(0, 0);
+            tvFolderFiles.Name = "tvFolderFiles";
+            tvFolderFiles.Size = new Size(268, 445);
+            tvFolderFiles.TabIndex = 0;
+            tvFolderFiles.NodeMouseDoubleClick += tvFolderFiles_NodeMouseDoubleClick;
+            // 
+            // tvCode
+            // 
+            tvCode.Dock = DockStyle.Fill;
+            tvCode.Location = new Point(0, 0);
+            tvCode.Name = "tvCode";
+            tvCode.Size = new Size(533, 445);
+            tvCode.TabIndex = 0;
             // 
             // menuStrip1
             // 
@@ -64,18 +93,18 @@
             ファイルToolStripMenuItem.Size = new Size(46, 24);
             ファイルToolStripMenuItem.Text = "File";
             // 
-            // exitToolStripMenuItem
-            // 
-            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(224, 26);
-            exitToolStripMenuItem.Text = "Exit";
-            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
-            // 
             // settingsToolStripMenuItem
             // 
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            settingsToolStripMenuItem.Size = new Size(224, 26);
+            settingsToolStripMenuItem.Size = new Size(145, 26);
             settingsToolStripMenuItem.Text = "Settings";
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(145, 26);
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // EOProcesser
             // 
@@ -87,6 +116,9 @@
             MainMenuStrip = menuStrip1;
             Name = "EOProcesser";
             Text = "ERAOCG Card Manager v0.1 by JoyJ";
+            Load += EOProcesser_Load;
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
@@ -102,5 +134,7 @@
         private ToolStripMenuItem ファイルToolStripMenuItem;
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem settingsToolStripMenuItem;
+        private TreeView tvFolderFiles;
+        private TreeView tvCode;
     }
 }
