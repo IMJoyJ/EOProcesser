@@ -14,19 +14,37 @@ namespace EOProcesser
             Application.Exit();
         }
 
+        ERAOCGCardManagerSettings settings = new ERAOCGCardManagerSettings();
+
         private void EOProcesser_Load(object sender, EventArgs e)
         {
-            const string folder = @"D:\Git\ELauncher\ERB\10.デュエル関連\02.CARDS";
-            // Create a root node for the folder
-            TreeNode rootNode = new TreeNode(Path.GetFileName(folder));
-            rootNode.Tag = folder;
-            tvFolderFiles.Nodes.Add(rootNode);
+            try
+            {
+                settings = JsonSerializer.Deserialize<ERAOCGCardManagerSettings>(File.ReadAllText("settings.json")) ?? settings;
+            }
+            catch { }
+            
+            LoadFolderTreeView();
+        }
 
-            // Populate the TreeView with .erb files
-            PopulateTreeView(folder, rootNode);
+        // 提取的公共方法，用于加?文件????
+        private void LoadFolderTreeView()
+        {
+            tvFolderFiles.Nodes.Clear();
+            
+            if (!string.IsNullOrEmpty(settings.RootFolder))
+            {
+                // Create a root node for the folder
+                TreeNode rootNode = new TreeNode(Path.GetFileName(settings.RootFolder));
+                rootNode.Tag = settings.RootFolder;
+                tvFolderFiles.Nodes.Add(rootNode);
 
-            // Expand the root node
-            rootNode.Expand();
+                // Populate the TreeView with .erb files
+                PopulateTreeView(settings.RootFolder, rootNode);
+
+                // Expand the root node
+                rootNode.Expand();
+            }
         }
 
         private void PopulateTreeView(string folderPath, TreeNode parentNode)
@@ -61,11 +79,6 @@ namespace EOProcesser
             }
         }
 
-        private void RefreshCodeView(string file)
-        {
-
-        }
-
         private void tvFolderFiles_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node.Tag is string str)
@@ -78,18 +91,45 @@ namespace EOProcesser
                     }
                     tvCode.Nodes.Clear();
                     var codes = ERACodeAnalyzer.AnalyzeCode(File.ReadAllLines(str));
-                    foreach(var code in codes)
+                    foreach (var code in codes)
                     {
                         tvCode.Nodes.AddRange([.. code.GetTreeNodes()]);
                     }
                 }
                 catch
 #if DEBUG
-#pragma warning disable CS8360 // ??器表?式是常量 “false”。
+#pragma warning disable CS8360
                 when (false)
-#pragma warning restore CS8360 // ??器表?式是常量 “false”。
+#pragma warning restore CS8360
 #endif
                 { }
+            }
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formSettings formSettings = new(settings);
+            if (formSettings.ShowDialog() == DialogResult.OK)
+            {
+                string previousRootFolder = settings.RootFolder;
+                settings = formSettings.Settings;
+                
+                // Save the updated settings
+                try
+                {
+                    File.WriteAllText("settings.json", JsonSerializer.Serialize(settings));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving settings: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                
+                // If RootFolder changed, reload the TreeView
+                if (settings.RootFolder != previousRootFolder)
+                {
+                    LoadFolderTreeView();
+                }
             }
         }
     }
