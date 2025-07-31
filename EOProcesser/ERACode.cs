@@ -316,9 +316,9 @@ namespace EOProcesser
                 var m = SubCaseValueRegex().Match(val);
                 if (m.Success)
                 {
-                    if (m.Groups.Count == 1)
+                    if (string.IsNullOrEmpty(m.Groups[1].Value))
                     {
-                        valList.Add("Value", m.Groups[1].Value.Trim());
+                        valList.Add("Value", m.Groups[2].Value.Trim());
                     }
                     else
                     {
@@ -355,7 +355,7 @@ namespace EOProcesser
         public ERACodeSelectCaseSubCase(string caseValue, string returnValue)
             : this(caseValue, [new ERACodeLine($"RETURN {returnValue}")]) { }
 
-        [GeneratedRegex(@"RESULTS?\s*[:=]\s*(.+)|RESULT\s*(\d+)\s*[:=]\s*(.+)")]
+        [GeneratedRegex(@"^RESULTS\s*(?::\s*(?<code>\d+)\s*=\s*|\s*=\s*)(?<text>.+)$")]
         private static partial Regex SubCaseValueRegex();
     }
     public class ERACodeSIfSegment : ERABlockSegment
