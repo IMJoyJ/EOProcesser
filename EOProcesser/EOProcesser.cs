@@ -1,4 +1,4 @@
-using System.Text.Json;
+ï»¿using System.Text.Json;
 
 namespace EOProcesser
 {
@@ -27,7 +27,6 @@ namespace EOProcesser
             LoadFolderTreeView();
         }
 
-        // ’ñæ“IŒö‹¤•û–@C—p˜°‰Á?•¶Œ????
         private void LoadFolderTreeView()
         {
             tvFolderFiles.Nodes.Clear();
