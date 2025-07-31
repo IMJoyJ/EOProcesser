@@ -85,7 +85,9 @@ namespace EOProcesser
                 }
                 catch
 #if DEBUG
+#pragma warning disable CS8360 // ??Ší•\?®¥í—Ê gfalsehB
                 when (false)
+#pragma warning restore CS8360 // ??Ší•\?®¥í—Ê gfalsehB
 #endif
                 { }
             }
