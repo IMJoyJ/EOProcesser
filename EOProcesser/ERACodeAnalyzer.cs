@@ -226,42 +226,55 @@ namespace EOProcesser
 
         private static void ParseIfBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeIfSegment ifSegment)
         {
-            int currentIndex = startIndex;
-
-            // 查找ELSEIF或ELSE
-            while (currentIndex <= endIndex)
+            // 重写的方法，正确处理嵌套的IF结构
+            List<(int index, string type, string? condition)> controlPoints = new();
+            
+            // 首先找出所有同级的ELSEIF和ELSE控制点
+            int nestLevel = 0;
+            for (int i = startIndex; i <= endIndex; i++)
             {
-                // 寻找下一个ELSEIF或ELSE
-                int elseIfIndex = -1;
-                int elseIndex = -1;
-
-                for (int i = currentIndex; i <= endIndex; i++)
+                string line = codeLines[i].TrimStart();
+                
+                if (line.StartsWith("IF "))
                 {
-                    string line = codeLines[i].TrimStart();
+                    nestLevel++;
+                }
+                else if (line == "ENDIF")
+                {
+                    nestLevel--;
+                }
+                // 只有当嵌套级别为0时，才考虑ELSEIF和ELSE
+                else if (nestLevel == 0)
+                {
                     if (line.StartsWith("ELSEIF "))
                     {
-                        elseIfIndex = i;
-                        break;
+                        string condition = line[7..].Trim();
+                        controlPoints.Add((i, "ELSEIF", condition));
                     }
                     else if (line == "ELSE")
                     {
-                        elseIndex = i;
-                        break;
+                        controlPoints.Add((i, "ELSE", null));
                     }
                 }
-
-                // 处理IF部分直到ELSEIF/ELSE
-                int endOfCurrentBlock = Math.Min(
-                    elseIfIndex != -1 ? elseIfIndex - 1 : endIndex,
-                    elseIndex != -1 ? elseIndex - 1 : endIndex
-                );
-
-                // 解析当前块
+            }
+            
+            // 添加一个结束点以便处理最后一个块
+            controlPoints.Add((endIndex + 1, "END", null));
+            
+            // 处理主IF块
+            int currentStart = startIndex;
+            
+            // 处理每个块
+            for (int i = 0; i < controlPoints.Count; i++)
+            {
+                var point = controlPoints[i];
+                int blockEnd = point.index - 1;
+                
+                // 创建并解析当前块
                 ERACodeMultiLines currentBlock = new();
-                ParseCodeBlock(codeLines, currentIndex, endOfCurrentBlock, currentBlock);
-
-                // 将解析的块添加到适当的部分
-                if (currentIndex == startIndex)
+                ParseCodeBlock(codeLines, currentStart, blockEnd, currentBlock);
+                
+                if (i == 0)
                 {
                     // 这是主IF块
                     foreach (var code in currentBlock)
@@ -269,57 +282,23 @@ namespace EOProcesser
                         ifSegment.Add(code);
                     }
                 }
-
-                // 更新当前索引
-                if (elseIfIndex != -1)
-                {
-                    // 处理ELSEIF
-                    string condition = codeLines[elseIfIndex].TrimStart()[7..].Trim();
-                    currentIndex = elseIfIndex + 1;
-
-                    // 查找下一个ELSEIF/ELSE或结束
-                    int nextElseIfOrElse = -1;
-                    for (int i = currentIndex; i <= endIndex; i++)
-                    {
-                        string line = codeLines[i].TrimStart();
-                        if (line.StartsWith("ELSEIF ") || line == "ELSE")
-                        {
-                            nextElseIfOrElse = i;
-                            break;
-                        }
-                    }
-
-                    if (nextElseIfOrElse == -1)
-                        nextElseIfOrElse = endIndex + 1;
-
-                    // 解析ELSEIF块
-                    ERACodeMultiLines elseIfBlock = new();
-                    ParseCodeBlock(codeLines, currentIndex, nextElseIfOrElse - 1, elseIfBlock);
-
-                    // 添加到IF段
-                    ifSegment.AddElseIf(condition, elseIfBlock);
-
-                    currentIndex = nextElseIfOrElse;
-                }
-                else if (elseIndex != -1)
-                {
-                    // 处理ELSE
-                    currentIndex = elseIndex + 1;
-
-                    // 解析ELSE块
-                    ERACodeMultiLines elseBlock = new();
-                    ParseCodeBlock(codeLines, currentIndex, endIndex, elseBlock);
-
-                    // 添加到IF段
-                    ifSegment.AddElse(elseBlock);
-
-                    break; // ELSE是最后一个块
-                }
                 else
                 {
-                    // 没有更多的ELSEIF或ELSE
-                    break;
+                    var prevPoint = controlPoints[i - 1];
+                    if (prevPoint.type == "ELSEIF")
+                    {
+                        // 这是ELSEIF块
+                        ifSegment.AddElseIf(prevPoint.condition!, currentBlock);
+                    }
+                    else if (prevPoint.type == "ELSE")
+                    {
+                        // 这是ELSE块
+                        ifSegment.AddElse(currentBlock);
+                    }
                 }
+                
+                // 更新下一个块的起始位置
+                currentStart = point.index + 1;
             }
         }
 
