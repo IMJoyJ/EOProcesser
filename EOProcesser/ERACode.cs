@@ -123,7 +123,21 @@ namespace EOProcesser
 
         public IEnumerator<ERACode> GetEnumerator()
         {
-            return GetEnumerator();
+            // 修复无限递归问题
+            if (StartCode != null)
+            {
+                yield return StartCode;
+            }
+
+            foreach (var code in codes)
+            {
+                yield return code;
+            }
+
+            if (EndCode != null)
+            {
+                yield return EndCode;
+            }
         }
 
         public override List<TreeNode> GetTreeNodes()
@@ -220,7 +234,7 @@ namespace EOProcesser
         public override string ToString()
         {
             string indentation = new('\t', Indentation);
-            return indentation + ToString().TrimStart();
+            return indentation + CodeLine.TrimStart();
         }
     }
     public class ERAFuncSegment : ERABlockSegment
@@ -286,7 +300,7 @@ namespace EOProcesser
         }
 
         public ERACodeSelectCaseSubCase(string caseValue, string returnValue)
-            : this($"CASE {caseValue}", [new ERACodeLine($"RETURN {returnValue}")]) { }
+            : this(caseValue, [new ERACodeLine($"RETURN {returnValue}")]) { }
     }
     public class ERACodeSIfSegment : ERABlockSegment
     {
