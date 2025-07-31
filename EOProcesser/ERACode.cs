@@ -43,7 +43,7 @@ namespace EOProcesser
         }
 
         internal readonly List<ERACode> codes = [];
-        virtual internal ERACodeMultiLines? StartCode { get; set; }
+        internal ERACodeMultiLines? StartCode { get; set; }
         internal ERACodeMultiLines? EndCode { get; set; }
         protected virtual string GetNodeText()
         {
@@ -75,10 +75,10 @@ namespace EOProcesser
             {
                 sb.Append(StartCode.ToString());
             }
-            sb.Append(string.Join("\r\n", codes.Select(code => code.ToString())));
+            sb.AppendLine(string.Join("\r\n", codes.Select(code => code.ToString())));
             if (EndCode != null)
             {
-                sb.Append(EndCode.ToString());
+                sb.AppendLine(EndCode.ToString());
             }
             return sb.ToString();
         }
@@ -173,9 +173,8 @@ namespace EOProcesser
         }
         protected override string GetNodeText()
         {
-            return StartCode.ToString();
+            return StartCode!.ToString();
         }
-        new readonly ERACodeMultiLines StartCode;
         public ERABlockSegment(string startCode, string? endCode = null, IEnumerable<ERACode>? initialCodes = null)
         {
 
@@ -242,7 +241,7 @@ namespace EOProcesser
         public override string ToString()
         {
             string indentation = new('\t', Indentation);
-            return indentation + CodeLine.TrimStart() + "\r\n";
+            return indentation + CodeLine.TrimStart();
         }
     }
     public class ERAFuncSegment : ERABlockSegment
@@ -333,7 +332,12 @@ namespace EOProcesser
         protected override string GetNodeText()
         {
             var val = GetValue();
-            return $"{CaseValue ?? ""}({val})";
+            string result = $"{CaseValue ?? "CASEELSE"}";
+            if (val != null)
+            {
+                result += $" ({val})";
+            }
+            return result;
         }
 
         public ERACodeSelectCaseSubCase(string? caseValue, ERACodeMultiLines codeSegment)
@@ -504,16 +508,12 @@ namespace EOProcesser
                 }
             }
 
-            // Add ElseSegments nodes
-            foreach (var elseSegment in elseSegments)
+            List<TreeNode> result = [rootNode];
+            foreach(var segment in elseSegments)
             {
-                foreach (var node in elseSegment.GetTreeNodes())
-                {
-                    rootNode.Nodes.Add(node);
-                }
+                result.AddRange(segment.GetTreeNodes());
             }
-
-            return [rootNode];
+            return result;
         }
     }
 

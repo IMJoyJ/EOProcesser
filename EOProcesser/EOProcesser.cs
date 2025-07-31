@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 
 namespace EOProcesser
 {
@@ -23,14 +24,14 @@ namespace EOProcesser
                 settings = JsonSerializer.Deserialize<ERAOCGCardManagerSettings>(File.ReadAllText("settings.json")) ?? settings;
             }
             catch { }
-            
+
             LoadFolderTreeView();
         }
 
         private void LoadFolderTreeView()
         {
             tvFolderFiles.Nodes.Clear();
-            
+
             if (!string.IsNullOrEmpty(settings.RootFolder))
             {
                 // Create a root node for the folder
@@ -94,6 +95,7 @@ namespace EOProcesser
                     {
                         tvCode.Nodes.AddRange([.. code.GetTreeNodes()]);
                     }
+                    txtCode.Text = codes.ToString();
                 }
                 catch
 #if DEBUG
@@ -112,7 +114,7 @@ namespace EOProcesser
             if (formSettings.ShowDialog() == DialogResult.OK)
             {
                 settings = formSettings.Settings;
-                
+
                 // Save the updated settings
                 try
                 {
@@ -123,11 +125,48 @@ namespace EOProcesser
                     MessageBox.Show($"Error saving settings: {ex.Message}", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                
+
                 // If RootFolder changed, reload the TreeView
                 if (settings.RootFolder != previousRootFolder)
                 {
                     LoadFolderTreeView();
+                }
+            }
+        }
+        private void tvFolderFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            // Show context menu on right-click
+            if (e.Button == MouseButtons.Right && e.Node.Tag is string filePath)
+            {
+                // Set the event handler for the Open menu item
+                openToolStripMenuItem.Click -= OpenFile_Click;
+                openToolStripMenuItem.Click += OpenFile_Click;
+                openToolStripMenuItem.Tag = filePath;
+                
+                // Show the context menu
+                CodeViewMenuStrip.Show(tvFolderFiles, e.Location);
+            }
+        }
+
+        private void OpenFile_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is string filePath)
+            {
+                try
+                {
+                    if (File.Exists(filePath))
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = filePath,
+                            UseShellExecute = true
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error opening file: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
