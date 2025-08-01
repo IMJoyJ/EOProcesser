@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace EOProcesser
 {
@@ -12,12 +13,21 @@ namespace EOProcesser
     {
         public string CodeLine { get; protected set; }
 
+        // 受保护的构造函数，只能由子类调用
         protected ERACodeLine(string codeLine)
         {
             CodeLine = codeLine;
         }
-
-        public abstract bool TryParse(string line, out ERACodeLine? result);
+        
+        // 静态创建方法，用于尝试从字符串创建特定类型的代码行
+        // 如果不匹配任何格式，则返回通用行
+        public static ERACodeLine Parse(string line)
+        {
+            return ERACodeLineFactory.CreateFromLine(line);
+        }
+        
+        // 每个子类必须尝试解析给定的文本行
+        public abstract bool CanParse(string line);
 
         public override int Indentation { get; set; } = 0;
 
@@ -38,16 +48,9 @@ namespace EOProcesser
         }
     }
 
-    public class ERACodeGenericLine : ERACodeLine
+    public class ERACodeGenericLine(string codeLine) : ERACodeLine(codeLine)
     {
-        public ERACodeGenericLine(string codeLine) : base(codeLine) { }
-
-        public override bool TryParse(string line, out ERACodeLine? result)
-        {
-            // 通用行总是能解析
-            result = new ERACodeGenericLine(line);
-            return true;
-        }
+        public override bool CanParse(string line) => true; // 通用行总是可以解析
     }
 
     public class ERACodeCommentLine : ERACodeLine
@@ -56,55 +59,50 @@ namespace EOProcesser
         
         public string Comment { get; private set; }
 
-        public ERACodeCommentLine(string codeLine, string comment) : base(codeLine)
+        public ERACodeCommentLine(string codeLine) : base(codeLine)
         {
-            Comment = comment;
-        }
-
-        public override bool TryParse(string line, out ERACodeLine? result)
-        {
-            result = null;
-            
-            var match = _pattern.Match(line);
-            if (match.Success)
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
             {
-                result = new ERACodeCommentLine(line, match.Groups[1].Value);
-                return true;
+                throw new FormatException("Not a valid comment line.");
             }
             
-            return false;
+            Comment = match.Groups[1].Value;
+        }
+
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
         }
 
         public override string GetNodeText() => $"(コメント){Comment}";
     }
 
-    public class ERACodePrintLineLine : ERACodeLine
+    public class ERACodePrintLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*PRINTL(?:\s+(.+))?$");
+        private static readonly Regex _pattern = new(@"^\s*PRINT([A-Z_]+)?\s+(.*)$");
         
-        public string? LineContent { get; private set; }
+        public string? PrintType { get; private set; }
+        public string? Content { get; private set; }
 
-        public ERACodePrintLineLine(string codeLine, string? lineContent) : base(codeLine)
+        public ERACodePrintLine(string codeLine) : base(codeLine)
         {
-            LineContent = lineContent;
-        }
-
-        public override bool TryParse(string line, out ERACodeLine? result)
-        {
-            result = null;
-            
-            var match = _pattern.Match(line);
-            if (match.Success)
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
             {
-                string? content = match.Groups[1].Success ? match.Groups[1].Value : null;
-                result = new ERACodePrintLineLine(line, content);
-                return true;
+                throw new FormatException("Not a valid PRINT line.");
             }
             
-            return false;
+            PrintType = match.Groups[1].Success ? match.Groups[1].Value : null;
+            Content = match.Groups[2].Success ? match.Groups[2].Value : null;
         }
 
-        public override string GetNodeText() => LineContent == null ? "(空行出力)" : $"(行出力){LineContent}";
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
+        }
+
+        public override string GetNodeText() => $"(表示:{PrintType}) {Content ?? ""}";
     }
 
     public class ERACodeDimLine : ERACodeLine
@@ -114,32 +112,26 @@ namespace EOProcesser
         public string VarName { get; private set; }
         public string? VarScope { get; private set; }
 
-        public ERACodeDimLine(string codeLine, string varName, string? varScope) : base(codeLine)
+        public ERACodeDimLine(string codeLine) : base(codeLine)
         {
-            VarName = varName;
-            VarScope = varScope;
-        }
-
-        public override bool TryParse(string line, out ERACodeLine? result)
-        {
-            result = null;
-            
-            var match = _pattern.Match(line);
-            if (match.Success)
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
             {
-                string? scope = match.Groups[1].Success ? match.Groups[1].Value : null;
-                string varName = match.Groups[2].Value.Trim();
-                
-                if (string.IsNullOrWhiteSpace(varName))
-                {
-                    return false;
-                }
-                
-                result = new ERACodeDimLine(line, varName, scope);
-                return true;
+                throw new FormatException("Not a valid #DIM line.");
             }
             
-            return false;
+            VarScope = match.Groups[1].Success ? match.Groups[1].Value : null;
+            VarName = match.Groups[2].Value.Trim();
+            
+            if (string.IsNullOrWhiteSpace(VarName))
+            {
+                throw new FormatException("Invalid #DIM format. Variable name cannot be empty.");
+            }
+        }
+
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
         }
 
         public override string GetNodeText()
@@ -162,29 +154,27 @@ namespace EOProcesser
         public string? VarScope { get; private set; }
         public int? ArrayLength { get; private set; }
 
-        public ERACodeDimsLine(string codeLine, string varName, string? varScope, int? arrayLength) : base(codeLine)
+        public ERACodeDimsLine(string codeLine) : base(codeLine)
         {
-            VarName = varName;
-            VarScope = varScope;
-            ArrayLength = arrayLength;
-        }
-
-        public override bool TryParse(string line, out ERACodeLine? result)
-        {
-            result = null;
-            
-            var match = _pattern.Match(line);
-            if (match.Success)
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
             {
-                string? scope = match.Groups[1].Success ? match.Groups[1].Value : null;
-                string varName = match.Groups[2].Value;
-                int? length = match.Groups[3].Success ? int.Parse(match.Groups[3].Value) : null;
-                
-                result = new ERACodeDimsLine(line, varName, scope, length);
-                return true;
+                throw new FormatException("Not a valid #DIMS line.");
             }
             
-            return false;
+            VarScope = match.Groups[1].Success ? match.Groups[1].Value : null;
+            VarName = match.Groups[2].Value;
+            ArrayLength = match.Groups[3].Success ? int.Parse(match.Groups[3].Value) : null;
+            
+            if (string.IsNullOrWhiteSpace(VarName))
+            {
+                throw new FormatException("Invalid #DIMS format. Variable name cannot be empty.");
+            }
+        }
+
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
         }
 
         public override string GetNodeText()
@@ -201,36 +191,114 @@ namespace EOProcesser
             return $"(文字列宣言){scopeText}{VarName}{lengthText}";
         }
     }
+
+    public class ERACodeGotoLine : ERACodeLine
+    {
+        private static readonly Regex _pattern = new(@"^\s*GOTO[ ]+(.+)$");
+        
+        public string LabelName { get; private set; }
+
+        public ERACodeGotoLine(string codeLine) : base(codeLine)
+        {
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
+            {
+                throw new FormatException("Not a valid GOTO line.");
+            }
+            
+            LabelName = match.Groups[1].Value.Trim();
+            
+            if (string.IsNullOrWhiteSpace(LabelName))
+            {
+                throw new FormatException("Invalid GOTO format. Label name cannot be empty.");
+            }
+        }
+
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
+        }
+
+        public override string GetNodeText() => $"(跳躍)→{LabelName}";
+    }
+
+    public class ERACodeLabelLine : ERACodeLine
+    {
+        private static readonly Regex _pattern = new(@"^\s*\$(.+)$");
+        
+        public string LabelName { get; private set; }
+
+        public ERACodeLabelLine(string codeLine) : base(codeLine)
+        {
+            var match = _pattern.Match(codeLine);
+            if (!match.Success)
+            {
+                throw new FormatException("Not a valid label line.");
+            }
+            
+            LabelName = match.Groups[1].Value.Trim();
+            
+            if (string.IsNullOrWhiteSpace(LabelName))
+            {
+                throw new FormatException("Invalid label format. Label name cannot be empty.");
+            }
+        }
+
+        public override bool CanParse(string line)
+        {
+            return _pattern.IsMatch(line);
+        }
+
+        public override string GetNodeText() => $"(識別子){LabelName}";
+    }
+
     
+
     // 工厂类用于创建适当的ERACodeLine实例
     public static class ERACodeLineFactory
     {
-        private static readonly List<ERACodeLine> _prototypes = new()
+        // 使用反射获取所有ERACodeLine的子类
+        private static readonly Lazy<List<Type>> _codeLineTypesLazy = new(() =>
         {
-            new ERACodeCommentLine("", ""),
-            new ERACodePrintLineLine("", null),
-            new ERACodeDimLine("", "", null),
-            new ERACodeDimsLine("", "", null, null)
-        };
-        
+            return [.. typeof(ERACodeLine).Assembly
+                .GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && typeof(ERACodeLine).IsAssignableFrom(t))
+                .OrderBy(t => t == typeof(ERACodeGenericLine) ? int.MaxValue : 0)];
+        });
+
+        private static List<Type> _codeLineTypes => _codeLineTypesLazy.Value;
+
         public static ERACodeLine CreateFromLine(string line)
         {
-            foreach (var prototype in _prototypes)
+            // 尝试使用每个已知的代码行类型来解析
+            foreach (var type in _codeLineTypes)
             {
-                if (prototype.TryParse(line, out var result) && result != null)
+                try
                 {
-                    return result;
+                    // 创建实例来检查是否可以解析
+                    var instance = (ERACodeLine)Activator.CreateInstance(type, line);
+
+                    // 如果是通用类型，直接返回
+                    if (type == typeof(ERACodeGenericLine))
+                    {
+                        return instance;
+                    }
+
+                    // 对于其他类型，检查是否可以解析
+                    if (instance.CanParse(line))
+                    {
+                        return instance;
+                    }
+                }
+                catch
+                {
+                    // 如果实例化失败，继续尝试下一个类型
+                    continue;
                 }
             }
-            
+
             // 如果没有匹配的特定类型，则返回通用行
             return new ERACodeGenericLine(line);
-        }
-        
-        // 注册新的代码行类型
-        public static void RegisterCodeLineType(ERACodeLine prototype)
-        {
-            _prototypes.Add(prototype);
         }
     }
 }
