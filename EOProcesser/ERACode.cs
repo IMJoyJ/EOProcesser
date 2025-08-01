@@ -91,10 +91,8 @@ namespace EOProcesser
 
         public void Add(string code)
         {
-            ERACodeLine line = new(code)
-            {
-                Indentation = this.Indentation
-            };
+            var line = ERACodeLineFactory.CreateFromLine(code);
+            line.Indentation = this.Indentation;
             codes.Add(line);
         }
 
@@ -178,10 +176,10 @@ namespace EOProcesser
         public ERABlockSegment(string startCode, string? endCode = null, IEnumerable<ERACode>? initialCodes = null)
         {
 
-            StartCode = [new ERACodeLine(startCode)];
+            StartCode = [ERACodeLineFactory.CreateFromLine(startCode)];
             if (endCode != null)
             {
-                EndCode = [new ERACodeLine(endCode)];
+                EndCode = [ERACodeLineFactory.CreateFromLine(endCode)];
             }
             if (initialCodes != null)
             {
@@ -195,7 +193,7 @@ namespace EOProcesser
 
         public ERABlockSegment(string startCode, IEnumerable<ERACode> initialCodes) : base(initialCodes)
         {
-            StartCode = [new ERACodeLine(startCode)];
+            StartCode = [ERACodeLineFactory.CreateFromLine(startCode)];
             Indentation = 0; // Trigger the indentation setter
         }
         public override List<TreeNode> GetTreeNodes()
@@ -336,7 +334,7 @@ namespace EOProcesser
         }
 
         public ERACodeSelectCaseSubCase(string caseValue, string returnValue)
-            : this(caseValue, [new ERACodeLine($"RETURN {returnValue}")]) { }
+            : this(caseValue, [ERACodeLineFactory.CreateFromLine($"RETURN {returnValue}")]) { }
 
         [GeneratedRegex(@"RESULTS?\s*[:=]\s*(.+)|RESULT\s*(\d+)\s*[:=]\s*(.+)")]
         private static partial Regex SubCaseValueRegex();
@@ -355,7 +353,7 @@ namespace EOProcesser
             : base($"SIF {condition}")
         {
             Condition = condition;
-            Add(new ERACodeLine(code));
+            Add(ERACodeLineFactory.CreateFromLine(code));
         }
 
         public ERACodeSIfSegment(string condition, ERACode code)

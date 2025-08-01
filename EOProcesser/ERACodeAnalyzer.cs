@@ -61,7 +61,7 @@ namespace EOProcesser
                 else
                 {
                     // 如果不是函数定义但在函数之间，作为普通代码行处理
-                    result.Add(new ERACodeLine(codeLines[currentIndex]));
+                    result.Add(ERACodeLineFactory.CreateFromLine(codeLines[currentIndex]));
                     currentIndex++;
                 }
             }
@@ -78,7 +78,7 @@ namespace EOProcesser
                 // 跳过空行
                 if (string.IsNullOrWhiteSpace(line))
                 {
-                    parent.Add(new ERACodeLine(line));
+                    parent.Add(ERACodeLineFactory.CreateFromLine(line));
                     continue;
                 }
 
@@ -118,7 +118,7 @@ namespace EOProcesser
                     // 如果SIF后面还有行，添加到SIF段
                     if (i + 1 <= endIndex)
                     {
-                        sifSegment.Add(new ERACodeLine(codeLines[i + 1]));
+                        sifSegment.Add(ERACodeLineFactory.CreateFromLine(codeLines[i + 1]));
                         i++; // 跳过下一行，因为已经处理了
                     }
 
@@ -167,7 +167,7 @@ namespace EOProcesser
                     else
                     {
                         // FOR语句格式不正确，作为普通代码行处理
-                        parent.Add(new ERACodeLine(codeLines[i]));
+                        parent.Add(ERACodeLineFactory.CreateFromLine(codeLines[i]));
                     }
                 }
                 else if (line.StartsWith("WHILE "))
@@ -245,7 +245,7 @@ namespace EOProcesser
                 else
                 {
                     // 普通代码行
-                    parent.Add(new ERACodeLine(codeLines[i]));
+                    parent.Add(ERACodeLineFactory.CreateFromLine(codeLines[i]));
                 }
             }
         }
