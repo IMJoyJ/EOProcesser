@@ -82,7 +82,33 @@ namespace EOProcesser
                     continue;
                 }
 
-                // 检查各种控制结构
+                // 首先检查是否为SKIPSTART - 最高优先级
+                if (line.TrimEnd() == "[SKIPSTART]")
+                {
+                    // 查找对应的SKIPEND
+                    int skipEndIndex = codeLines.FindIndex(i + 1, endIndex, l => l.TrimStart() == "[SKIPEND]");
+
+                    // 如果没有找到对应的SKIPEND，使用到结尾的所有内容
+                    if (skipEndIndex == -1)
+                        skipEndIndex = endIndex;
+
+                    // 提取所有注释行
+                    List<string> commentLines = [];
+                    for (int j = i + 1; j < skipEndIndex; j++)
+                    {
+                        commentLines.Add(codeLines[j]);
+                    }
+
+                    // 创建SkipSegment并添加
+                    ERACodeSkipSegment skipSegment = new(commentLines);
+                    parent.Add(skipSegment);
+
+                    // 跳到SKIPEND之后
+                    i = skipEndIndex;
+                    continue;
+                }
+
+                // 其他控制结构的处理...
                 if (line.StartsWith("SIF "))
                 {
                     // SIF 只影响下一行
@@ -228,13 +254,13 @@ namespace EOProcesser
         {
             // 重写的方法，正确处理嵌套的IF结构
             List<(int index, string type, string? condition)> controlPoints = new();
-            
+
             // 首先找出所有同级的ELSEIF和ELSE控制点
             int nestLevel = 0;
             for (int i = startIndex; i <= endIndex; i++)
             {
                 string line = codeLines[i].TrimStart();
-                
+
                 if (line.StartsWith("IF "))
                 {
                     nestLevel++;
@@ -257,23 +283,23 @@ namespace EOProcesser
                     }
                 }
             }
-            
+
             // 添加一个结束点以便处理最后一个块
             controlPoints.Add((endIndex + 1, "END", null));
-            
+
             // 处理主IF块
             int currentStart = startIndex;
-            
+
             // 处理每个块
             for (int i = 0; i < controlPoints.Count; i++)
             {
                 var point = controlPoints[i];
                 int blockEnd = point.index - 1;
-                
+
                 // 创建并解析当前块
                 ERACodeMultiLines currentBlock = new();
                 ParseCodeBlock(codeLines, currentStart, blockEnd, currentBlock);
-                
+
                 if (i == 0)
                 {
                     // 这是主IF块
@@ -296,7 +322,7 @@ namespace EOProcesser
                         ifSegment.AddElse(currentBlock);
                     }
                 }
-                
+
                 // 更新下一个块的起始位置
                 currentStart = point.index + 1;
             }
