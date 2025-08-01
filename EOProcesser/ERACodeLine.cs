@@ -273,6 +273,9 @@ namespace EOProcesser
             // 尝试使用每个已知的代码行类型来解析
             foreach (var type in _codeLineTypes)
             {
+#pragma warning disable CS8603 // 可能返回 null 引用。
+#pragma warning disable CS8602 // 解引用可能出现空引用。
+#pragma warning disable CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
                 try
                 {
                     // 创建实例来检查是否可以解析
@@ -290,6 +293,9 @@ namespace EOProcesser
                         return instance;
                     }
                 }
+#pragma warning restore CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
+#pragma warning restore CS8602 // 解引用可能出现空引用。
+#pragma warning restore CS8603 // 可能返回 null 引用。
                 catch
                 {
                     // 如果实例化失败，继续尝试下一个类型
