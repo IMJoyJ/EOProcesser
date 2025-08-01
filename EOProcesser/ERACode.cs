@@ -660,11 +660,13 @@ namespace EOProcesser
                 Tag = this
             };
 
-            // 可以选择性地将注释添加为子节点
-            if (commentLines.Count > 0)
+            foreach (var line in commentLines)
             {
-                TreeNode commentsNode = new("comments");
-                rootNode.Nodes.Add(commentsNode);
+                TreeNode commentNode = new(line)
+                {
+                    Tag = line
+                };
+                rootNode.Nodes.Add(commentNode);
             }
 
             return [rootNode];
