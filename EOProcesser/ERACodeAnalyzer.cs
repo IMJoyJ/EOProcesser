@@ -20,55 +20,110 @@ namespace EOProcesser
                 return result;
             }
 
-            // 查找第一个函数定义的索引
-            int firstFuncIndex = codeLines.FindIndex(line => line.TrimStart().StartsWith('@'));
+            // 预处理所有SKIP块
+            PreprocessSkipBlocks(codeLines, result);
 
-            // 如果有函数定义前的代码，做一次处理
-            if (firstFuncIndex > 0)
+            // 处理预处理后的代码（如果有效的代码还剩余）
+            if (codeLines.Count > 0)
             {
-                ParseCodeBlock(codeLines, 0, firstFuncIndex - 1, result);
-            }
-            else if (firstFuncIndex == -1)
-            {
-                // 如果没有函数定义，则解析整个代码块
-                ParseCodeBlock(codeLines, 0, codeLines.Count - 1, result);
-                return result;
-            }
+                // 查找第一个函数定义的索引
+                int firstFuncIndex = codeLines.FindIndex(line => line.TrimStart().StartsWith('@'));
 
-            // 处理所有函数
-            int currentIndex = firstFuncIndex;
-            while (currentIndex < codeLines.Count)
-            {
-                string currentLine = codeLines[currentIndex].TrimStart();
-
-                // 如果当前行是函数定义
-                if (currentLine.StartsWith('@'))
+                // 如果有函数定义前的代码，做一次处理
+                if (firstFuncIndex > 0)
                 {
-                    string funcName = currentLine[1..].Trim();
-                    ERACodeFuncSegment funcSegment = new(funcName);
-
-                    // 查找下一个函数定义
-                    int nextFuncIndex = codeLines.FindIndex(currentIndex + 1, line => line.TrimStart().StartsWith("@"));
-                    if (nextFuncIndex == -1)
-                        nextFuncIndex = codeLines.Count;
-
-                    // 解析函数体
-                    ParseCodeBlock(codeLines, currentIndex + 1, nextFuncIndex - 1, funcSegment);
-
-                    result.Add(funcSegment);
-                    currentIndex = nextFuncIndex;
+                    ParseCodeBlock(codeLines, 0, firstFuncIndex - 1, result);
                 }
-                else
+                else if (firstFuncIndex == -1)
                 {
-                    // 如果不是函数定义但在函数之间，作为普通代码行处理
-                    result.Add(ERACodeLineFactory.CreateFromLine(codeLines[currentIndex]));
-                    currentIndex++;
+                    // 如果没有函数定义，则解析整个代码块
+                    ParseCodeBlock(codeLines, 0, codeLines.Count - 1, result);
+                    return result;
+                }
+
+                // 处理所有函数
+                int currentIndex = firstFuncIndex;
+                while (currentIndex < codeLines.Count)
+                {
+                    string currentLine = codeLines[currentIndex].TrimStart();
+
+                    // 如果当前行是函数定义
+                    if (currentLine.StartsWith('@'))
+                    {
+                        string funcName = currentLine[1..].Trim();
+                        ERACodeFuncSegment funcSegment = new(funcName);
+
+                        // 查找下一个函数定义
+                        int nextFuncIndex = codeLines.FindIndex(currentIndex + 1, line => line.TrimStart().StartsWith("@"));
+                        if (nextFuncIndex == -1)
+                            nextFuncIndex = codeLines.Count;
+
+                        // 解析函数体
+                        ParseCodeBlock(codeLines, currentIndex + 1, nextFuncIndex - 1, funcSegment);
+
+                        result.Add(funcSegment);
+                        currentIndex = nextFuncIndex;
+                    }
+                    else
+                    {
+                        // 如果不是函数定义但在函数之间，作为普通代码行处理
+                        result.Add(ERACodeLineFactory.CreateFromLine(codeLines[currentIndex]));
+                        currentIndex++;
+                    }
                 }
             }
 
             return result;
         }
 
+        private static void PreprocessSkipBlocks(List<string> codeLines, ERACodeMultiLines parent)
+        {
+            int currentIndex = 0;
+
+            while (currentIndex < codeLines.Count)
+            {
+                string line = codeLines[currentIndex].TrimStart();
+
+                if (line == "[SKIPSTART]")
+                {
+                    int startIndex = currentIndex;
+                    int skipEndIndex = -1;
+
+                    // 查找对应的[SKIPEND]
+                    for (int i = startIndex + 1; i < codeLines.Count; i++)
+                    {
+                        if (codeLines[i].TrimStart() == "[SKIPEND]")
+                        {
+                            skipEndIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (skipEndIndex == -1)
+                    {
+                        // 如果没有找到对应的[SKIPEND]，将剩余全部代码视为注释
+                        skipEndIndex = codeLines.Count - 1;
+                    }
+
+                    // 提取SKIP块中的所有注释内容
+                    var skipComments = codeLines.GetRange(startIndex + 1, skipEndIndex - startIndex - 1);
+
+                    // 创建SKIP段并添加到父容器
+                    ERACodeSkipSegment skipSegment = new(skipComments);
+                    parent.Add(skipSegment);
+
+                    // 从代码行列表中移除已处理的SKIP块
+                    codeLines.RemoveRange(startIndex, skipEndIndex - startIndex + 1);
+
+                    // currentIndex不需要递增，因为已经移除了元素，下一个元素现在位于相同位置
+                }
+                else
+                {
+                    // 如果不是SKIP块，继续检查下一行
+                    currentIndex++;
+                }
+            }
+        }
         private static void ParseCodeBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeMultiLines parent)
         {
             for (int i = startIndex; i <= endIndex; i++)
@@ -79,32 +134,6 @@ namespace EOProcesser
                 if (string.IsNullOrWhiteSpace(line))
                 {
                     parent.Add(ERACodeLineFactory.CreateFromLine(line));
-                    continue;
-                }
-
-                // 首先检查是否为SKIPSTART - 最高优先级
-                if (line.TrimEnd() == "[SKIPSTART]")
-                {
-                    // 查找对应的SKIPEND
-                    int skipEndIndex = codeLines.FindIndex(i + 1, endIndex, l => l.TrimStart() == "[SKIPEND]");
-
-                    // 如果没有找到对应的SKIPEND，使用到结尾的所有内容
-                    if (skipEndIndex == -1)
-                        skipEndIndex = endIndex;
-
-                    // 提取所有注释行
-                    List<string> commentLines = [];
-                    for (int j = i + 1; j < skipEndIndex; j++)
-                    {
-                        commentLines.Add(codeLines[j]);
-                    }
-
-                    // 创建SkipSegment并添加
-                    ERACodeSkipSegment skipSegment = new(commentLines);
-                    parent.Add(skipSegment);
-
-                    // 跳到SKIPEND之后
-                    i = skipEndIndex;
                     continue;
                 }
 
