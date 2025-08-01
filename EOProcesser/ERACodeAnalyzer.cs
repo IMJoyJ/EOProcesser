@@ -45,7 +45,7 @@ namespace EOProcesser
                 if (currentLine.StartsWith('@'))
                 {
                     string funcName = currentLine[1..].Trim();
-                    ERAFuncSegment funcSegment = new(funcName);
+                    ERACodeFuncSegment funcSegment = new(funcName);
 
                     // 查找下一个函数定义
                     int nextFuncIndex = codeLines.FindIndex(currentIndex + 1, line => line.TrimStart().StartsWith("@"));
