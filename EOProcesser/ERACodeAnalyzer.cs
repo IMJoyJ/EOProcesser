@@ -20,55 +20,110 @@ namespace EOProcesser
                 return result;
             }
 
-            // 查找第一个函数定义的索引
-            int firstFuncIndex = codeLines.FindIndex(line => line.TrimStart().StartsWith('@'));
+            // 预处理所有SKIP块
+            PreprocessSkipBlocks(codeLines, result);
 
-            // 如果有函数定义前的代码，做一次处理
-            if (firstFuncIndex > 0)
+            // 处理预处理后的代码（如果有效的代码还剩余）
+            if (codeLines.Count > 0)
             {
-                ParseCodeBlock(codeLines, 0, firstFuncIndex - 1, result);
-            }
-            else if (firstFuncIndex == -1)
-            {
-                // 如果没有函数定义，则解析整个代码块
-                ParseCodeBlock(codeLines, 0, codeLines.Count - 1, result);
-                return result;
-            }
+                // 查找第一个函数定义的索引
+                int firstFuncIndex = codeLines.FindIndex(line => line.TrimStart().StartsWith('@'));
 
-            // 处理所有函数
-            int currentIndex = firstFuncIndex;
-            while (currentIndex < codeLines.Count)
-            {
-                string currentLine = codeLines[currentIndex].TrimStart();
-
-                // 如果当前行是函数定义
-                if (currentLine.StartsWith('@'))
+                // 如果有函数定义前的代码，做一次处理
+                if (firstFuncIndex > 0)
                 {
-                    string funcName = currentLine[1..].Trim();
-                    ERAFuncSegment funcSegment = new(funcName);
-
-                    // 查找下一个函数定义
-                    int nextFuncIndex = codeLines.FindIndex(currentIndex + 1, line => line.TrimStart().StartsWith("@"));
-                    if (nextFuncIndex == -1)
-                        nextFuncIndex = codeLines.Count;
-
-                    // 解析函数体
-                    ParseCodeBlock(codeLines, currentIndex + 1, nextFuncIndex - 1, funcSegment);
-
-                    result.Add(funcSegment);
-                    currentIndex = nextFuncIndex;
+                    ParseCodeBlock(codeLines, 0, firstFuncIndex - 1, result);
                 }
-                else
+                else if (firstFuncIndex == -1)
                 {
-                    // 如果不是函数定义但在函数之间，作为普通代码行处理
-                    result.Add(new ERACodeLine(codeLines[currentIndex]));
-                    currentIndex++;
+                    // 如果没有函数定义，则解析整个代码块
+                    ParseCodeBlock(codeLines, 0, codeLines.Count - 1, result);
+                    return result;
+                }
+
+                // 处理所有函数
+                int currentIndex = firstFuncIndex;
+                while (currentIndex < codeLines.Count)
+                {
+                    string currentLine = codeLines[currentIndex].TrimStart();
+
+                    // 如果当前行是函数定义
+                    if (currentLine.StartsWith('@'))
+                    {
+                        string funcName = currentLine[1..].Trim();
+                        ERACodeFuncSegment funcSegment = new(funcName);
+
+                        // 查找下一个函数定义
+                        int nextFuncIndex = codeLines.FindIndex(currentIndex + 1, line => line.TrimStart().StartsWith("@"));
+                        if (nextFuncIndex == -1)
+                            nextFuncIndex = codeLines.Count;
+
+                        // 解析函数体
+                        ParseCodeBlock(codeLines, currentIndex + 1, nextFuncIndex - 1, funcSegment);
+
+                        result.Add(funcSegment);
+                        currentIndex = nextFuncIndex;
+                    }
+                    else
+                    {
+                        // 如果不是函数定义但在函数之间，作为普通代码行处理
+                        result.Add(ERACodeLineFactory.CreateFromLine(codeLines[currentIndex]));
+                        currentIndex++;
+                    }
                 }
             }
 
             return result;
         }
 
+        private static void PreprocessSkipBlocks(List<string> codeLines, ERACodeMultiLines parent)
+        {
+            int currentIndex = 0;
+
+            while (currentIndex < codeLines.Count)
+            {
+                string line = codeLines[currentIndex].TrimStart();
+
+                if (line == "[SKIPSTART]")
+                {
+                    int startIndex = currentIndex;
+                    int skipEndIndex = -1;
+
+                    // 查找对应的[SKIPEND]
+                    for (int i = startIndex + 1; i < codeLines.Count; i++)
+                    {
+                        if (codeLines[i].TrimStart() == "[SKIPEND]")
+                        {
+                            skipEndIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (skipEndIndex == -1)
+                    {
+                        // 如果没有找到对应的[SKIPEND]，将剩余全部代码视为注释
+                        skipEndIndex = codeLines.Count - 1;
+                    }
+
+                    // 提取SKIP块中的所有注释内容
+                    var skipComments = codeLines.GetRange(startIndex + 1, skipEndIndex - startIndex - 1);
+
+                    // 创建SKIP段并添加到父容器
+                    ERACodeSkipSegment skipSegment = new(skipComments);
+                    parent.Add(skipSegment);
+
+                    // 从代码行列表中移除已处理的SKIP块
+                    codeLines.RemoveRange(startIndex, skipEndIndex - startIndex + 1);
+
+                    // currentIndex不需要递增，因为已经移除了元素，下一个元素现在位于相同位置
+                }
+                else
+                {
+                    // 如果不是SKIP块，继续检查下一行
+                    currentIndex++;
+                }
+            }
+        }
         private static void ParseCodeBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeMultiLines parent)
         {
             for (int i = startIndex; i <= endIndex; i++)
@@ -78,11 +133,11 @@ namespace EOProcesser
                 // 跳过空行
                 if (string.IsNullOrWhiteSpace(line))
                 {
-                    parent.Add(new ERACodeLine(line));
+                    parent.Add(ERACodeLineFactory.CreateFromLine(line));
                     continue;
                 }
 
-                // 检查各种控制结构
+                // 其他控制结构的处理...
                 if (line.StartsWith("SIF "))
                 {
                     // SIF 只影响下一行
@@ -92,7 +147,7 @@ namespace EOProcesser
                     // 如果SIF后面还有行，添加到SIF段
                     if (i + 1 <= endIndex)
                     {
-                        sifSegment.Add(new ERACodeLine(codeLines[i + 1]));
+                        sifSegment.Add(ERACodeLineFactory.CreateFromLine(codeLines[i + 1]));
                         i++; // 跳过下一行，因为已经处理了
                     }
 
@@ -141,7 +196,7 @@ namespace EOProcesser
                     else
                     {
                         // FOR语句格式不正确，作为普通代码行处理
-                        parent.Add(new ERACodeLine(codeLines[i]));
+                        parent.Add(ERACodeLineFactory.CreateFromLine(codeLines[i]));
                     }
                 }
                 else if (line.StartsWith("WHILE "))
@@ -219,7 +274,7 @@ namespace EOProcesser
                 else
                 {
                     // 普通代码行
-                    parent.Add(new ERACodeLine(codeLines[i]));
+                    parent.Add(ERACodeLineFactory.CreateFromLine(codeLines[i]));
                 }
             }
         }
@@ -228,13 +283,13 @@ namespace EOProcesser
         {
             // 重写的方法，正确处理嵌套的IF结构
             List<(int index, string type, string? condition)> controlPoints = new();
-            
+
             // 首先找出所有同级的ELSEIF和ELSE控制点
             int nestLevel = 0;
             for (int i = startIndex; i <= endIndex; i++)
             {
                 string line = codeLines[i].TrimStart();
-                
+
                 if (line.StartsWith("IF "))
                 {
                     nestLevel++;
@@ -257,23 +312,23 @@ namespace EOProcesser
                     }
                 }
             }
-            
+
             // 添加一个结束点以便处理最后一个块
             controlPoints.Add((endIndex + 1, "END", null));
-            
+
             // 处理主IF块
             int currentStart = startIndex;
-            
+
             // 处理每个块
             for (int i = 0; i < controlPoints.Count; i++)
             {
                 var point = controlPoints[i];
                 int blockEnd = point.index - 1;
-                
+
                 // 创建并解析当前块
                 ERACodeMultiLines currentBlock = new();
                 ParseCodeBlock(codeLines, currentStart, blockEnd, currentBlock);
-                
+
                 if (i == 0)
                 {
                     // 这是主IF块
@@ -296,7 +351,7 @@ namespace EOProcesser
                         ifSegment.AddElse(currentBlock);
                     }
                 }
-                
+
                 // 更新下一个块的起始位置
                 currentStart = point.index + 1;
             }

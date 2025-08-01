@@ -91,10 +91,8 @@ namespace EOProcesser
 
         public void Add(string code)
         {
-            ERACodeLine line = new(code)
-            {
-                Indentation = this.Indentation
-            };
+            var line = ERACodeLineFactory.CreateFromLine(code);
+            line.Indentation = this.Indentation;
             codes.Add(line);
         }
 
@@ -178,10 +176,10 @@ namespace EOProcesser
         public ERABlockSegment(string startCode, string? endCode = null, IEnumerable<ERACode>? initialCodes = null)
         {
 
-            StartCode = [new ERACodeLine(startCode)];
+            StartCode = [ERACodeLineFactory.CreateFromLine(startCode)];
             if (endCode != null)
             {
-                EndCode = [new ERACodeLine(endCode)];
+                EndCode = [ERACodeLineFactory.CreateFromLine(endCode)];
             }
             if (initialCodes != null)
             {
@@ -195,7 +193,7 @@ namespace EOProcesser
 
         public ERABlockSegment(string startCode, IEnumerable<ERACode> initialCodes) : base(initialCodes)
         {
-            StartCode = [new ERACodeLine(startCode)];
+            StartCode = [ERACodeLineFactory.CreateFromLine(startCode)];
             Indentation = 0; // Trigger the indentation setter
         }
         public override List<TreeNode> GetTreeNodes()
@@ -222,37 +220,15 @@ namespace EOProcesser
             return [rootNode];
         }
     }
-
-    //Not supported lines. Same to base class ERACode.
-    public class ERACodeLine(string codeLine) : ERACode
-    {
-        public string CodeLine = codeLine;
-
-        public override int Indentation { get; set; } = 0;
-
-        public override List<TreeNode> GetTreeNodes()
-        {
-            return [new TreeNode(CodeLine)
-            {
-                Tag = this
-            }];
-        }
-
-        public override string ToString()
-        {
-            string indentation = new('\t', Indentation);
-            return indentation + CodeLine.TrimStart();
-        }
-    }
-    public class ERAFuncSegment : ERABlockSegment
+    public class ERACodeFuncSegment : ERABlockSegment
     {
         public string FuncName;
-        public ERAFuncSegment(string funcName) : base($"@{funcName}")
+        public ERACodeFuncSegment(string funcName) : base($"@{funcName}")
         {
             FuncName = funcName;
         }
 
-        public ERAFuncSegment(string funcName, IEnumerable<ERACode> codes)
+        public ERACodeFuncSegment(string funcName, IEnumerable<ERACode> codes)
             : base($"@{funcName}", codes)
         {
             FuncName = funcName;
@@ -267,6 +243,11 @@ namespace EOProcesser
         {
             ERACodeSelectCaseSubCase subCase = new(caseValue, returnValue);
             subCase.Indentation = this.Indentation + 1;
+            Add(subCase);
+        }
+
+        public void AddCase(ERACodeSelectCaseSubCase subCase)
+        {
             Add(subCase);
         }
 
@@ -299,7 +280,7 @@ namespace EOProcesser
             }
             return "";
         }
-        
+
         public Dictionary<string, string> GetValueList()
         {
             string str = "";
@@ -353,7 +334,7 @@ namespace EOProcesser
         }
 
         public ERACodeSelectCaseSubCase(string caseValue, string returnValue)
-            : this(caseValue, [new ERACodeLine($"RETURN {returnValue}")]) { }
+            : this(caseValue, [ERACodeLineFactory.CreateFromLine($"RETURN {returnValue}")]) { }
 
         [GeneratedRegex(@"^RESULTS\s*(?::\s*(?<code>\d+)\s*=\s*|\s*=\s*)(?<text>.+)$")]
         private static partial Regex SubCaseValueRegex();
@@ -372,7 +353,7 @@ namespace EOProcesser
             : base($"SIF {condition}")
         {
             Condition = condition;
-            Add(new ERACodeLine(code));
+            Add(ERACodeLineFactory.CreateFromLine(code));
         }
 
         public ERACodeSIfSegment(string condition, ERACode code)
@@ -509,7 +490,7 @@ namespace EOProcesser
             }
 
             List<TreeNode> result = [rootNode];
-            foreach(var segment in elseSegments)
+            foreach (var segment in elseSegments)
             {
                 result.AddRange(segment.GetTreeNodes());
             }
@@ -586,7 +567,7 @@ namespace EOProcesser
             Condition = condition;
         }
     }
-    
+
     public class ERACodeRepeatSegment : ERABlockSegment
     {
         public string Condition { get; private set; }
@@ -603,5 +584,92 @@ namespace EOProcesser
             Condition = condition;
         }
     }
-    
+    public class ERACodeSkipSegment : ERABlockSegment,IEnumerable<ERACode>
+    {
+        private readonly List<string> commentLines = [];
+
+        public ERACodeSkipSegment(IEnumerable<string> comments)
+            : base("[SKIPSTART]", "[SKIPEND]")
+        {
+            commentLines.AddRange(comments);
+        }
+
+        public ERACodeSkipSegment(params string[] comments)
+            : base("[SKIPSTART]", "[SKIPEND]")
+        {
+            commentLines.AddRange(comments);
+        }
+
+        // 重写ToString方法来原样输出注释内容，忽略缩进
+        public override string ToString()
+        {
+            StringBuilder sb = new();
+
+            // 添加起始标签，应用缩进
+            string indentStr = new('\t', Indentation);
+            sb.AppendLine($"{indentStr}[SKIPSTART]");
+
+            // 添加注释行，原样输出不应用缩进
+            foreach (var line in commentLines)
+            {
+                sb.AppendLine(line);
+            }
+
+            // 添加结束标签，应用缩进
+            sb.Append($"{indentStr}[SKIPEND]");
+
+            return sb.ToString();
+        }
+
+        // 重写GetEnumerator方法，使其只返回StartCode和EndCode，跳过注释内容
+        override public IEnumerator<ERACode> GetEnumerator()
+        {
+            if (StartCode != null)
+            {
+                yield return StartCode;
+            }
+
+            // 注释行不作为ERACode单独存在，它们只在ToString()时被处理
+            // 所以这里不需要迭代commentLines
+
+            if (EndCode != null)
+            {
+                yield return EndCode;
+            }
+        }
+
+        // 同时重写非泛型的GetEnumerator
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            if (StartCode != null)
+            {
+                yield return StartCode;
+            }
+
+            if (EndCode != null)
+            {
+                yield return EndCode;
+            }
+        }
+
+        // 可能也需要重写GetTreeNodes方法，让它处理注释内容
+        public override List<TreeNode> GetTreeNodes()
+        {
+            TreeNode rootNode = new("[SKIPSTART]")
+            {
+                Tag = this
+            };
+
+            foreach (var line in commentLines)
+            {
+                TreeNode commentNode = new(line)
+                {
+                    Tag = line
+                };
+                rootNode.Nodes.Add(commentNode);
+            }
+
+            return [rootNode];
+        }
+    }
 }

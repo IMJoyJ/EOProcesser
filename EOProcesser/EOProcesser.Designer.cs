@@ -43,6 +43,7 @@
             tabPageCodeView = new TabPage();
             CodeViewMenuStrip = new ContextMenuStrip(components);
             openToolStripMenuItem = new ToolStripMenuItem();
+            splitContainerCardEdit = new SplitContainer();
             ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
             splitContainer.Panel1.SuspendLayout();
             splitContainer.Panel2.SuspendLayout();
@@ -53,15 +54,17 @@
             splitContainer1.SuspendLayout();
             menuStrip.SuspendLayout();
             tabControl.SuspendLayout();
+            tabPageCardEdit.SuspendLayout();
             tabPageCodeView.SuspendLayout();
             CodeViewMenuStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).BeginInit();
+            splitContainerCardEdit.SuspendLayout();
             SuspendLayout();
             // 
             // splitContainer
             // 
             splitContainer.Dock = DockStyle.Fill;
-            splitContainer.Location = new Point(3, 3);
-            splitContainer.Margin = new Padding(7, 6, 7, 6);
+            splitContainer.Location = new Point(1, 2);
             splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
@@ -71,18 +74,16 @@
             // splitContainer.Panel2
             // 
             splitContainer.Panel2.Controls.Add(splitContainer1);
-            splitContainer.Size = new Size(1693, 875);
-            splitContainer.SplitterDistance = 563;
-            splitContainer.SplitterWidth = 9;
+            splitContainer.Size = new Size(754, 447);
+            splitContainer.SplitterDistance = 250;
             splitContainer.TabIndex = 0;
             // 
             // tvFolderFiles
             // 
             tvFolderFiles.Dock = DockStyle.Fill;
             tvFolderFiles.Location = new Point(0, 0);
-            tvFolderFiles.Margin = new Padding(7, 6, 7, 6);
             tvFolderFiles.Name = "tvFolderFiles";
-            tvFolderFiles.Size = new Size(563, 875);
+            tvFolderFiles.Size = new Size(250, 447);
             tvFolderFiles.TabIndex = 0;
             tvFolderFiles.NodeMouseClick += tvFolderFiles_NodeMouseClick;
             tvFolderFiles.NodeMouseDoubleClick += tvFolderFiles_NodeMouseDoubleClick;
@@ -91,6 +92,7 @@
             // 
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer1.Location = new Point(0, 0);
+            splitContainer1.Margin = new Padding(1, 2, 1, 2);
             splitContainer1.Name = "splitContainer1";
             splitContainer1.Orientation = Orientation.Horizontal;
             // 
@@ -101,27 +103,28 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(txtCode);
-            splitContainer1.Size = new Size(1121, 875);
-            splitContainer1.SplitterDistance = 437;
+            splitContainer1.Size = new Size(500, 447);
+            splitContainer1.SplitterDistance = 223;
+            splitContainer1.SplitterWidth = 2;
             splitContainer1.TabIndex = 1;
             // 
             // tvCode
             // 
             tvCode.Dock = DockStyle.Fill;
             tvCode.Location = new Point(0, 0);
-            tvCode.Margin = new Padding(7, 6, 7, 6);
             tvCode.Name = "tvCode";
-            tvCode.Size = new Size(1121, 437);
+            tvCode.Size = new Size(500, 223);
             tvCode.TabIndex = 0;
             // 
             // txtCode
             // 
             txtCode.Dock = DockStyle.Fill;
             txtCode.Location = new Point(0, 0);
+            txtCode.Margin = new Padding(1, 2, 1, 2);
             txtCode.Multiline = true;
             txtCode.Name = "txtCode";
             txtCode.ScrollBars = ScrollBars.Vertical;
-            txtCode.Size = new Size(1121, 434);
+            txtCode.Size = new Size(500, 222);
             txtCode.TabIndex = 0;
             // 
             // menuStrip
@@ -130,8 +133,7 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Padding = new Padding(14, 4, 0, 4);
-            menuStrip.Size = new Size(1719, 51);
+            menuStrip.Size = new Size(764, 28);
             menuStrip.TabIndex = 1;
             menuStrip.Text = "menuStrip1";
             // 
@@ -139,20 +141,20 @@
             // 
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            fileToolStripMenuItem.Size = new Size(90, 43);
+            fileToolStripMenuItem.Size = new Size(46, 24);
             fileToolStripMenuItem.Text = "File";
             // 
             // settingsToolStripMenuItem
             // 
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            settingsToolStripMenuItem.Size = new Size(297, 54);
+            settingsToolStripMenuItem.Size = new Size(145, 26);
             settingsToolStripMenuItem.Text = "Settings";
             settingsToolStripMenuItem.Click += settingsToolStripMenuItem_Click;
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(297, 54);
+            exitToolStripMenuItem.Size = new Size(145, 26);
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
@@ -161,18 +163,21 @@
             tabControl.Controls.Add(tabPageCardEdit);
             tabControl.Controls.Add(tabPageCodeView);
             tabControl.Dock = DockStyle.Fill;
-            tabControl.Location = new Point(0, 51);
+            tabControl.Location = new Point(0, 28);
+            tabControl.Margin = new Padding(1, 2, 1, 2);
             tabControl.Name = "tabControl";
             tabControl.SelectedIndex = 0;
-            tabControl.Size = new Size(1719, 947);
+            tabControl.Size = new Size(764, 484);
             tabControl.TabIndex = 2;
             // 
             // tabPageCardEdit
             // 
-            tabPageCardEdit.Location = new Point(10, 56);
+            tabPageCardEdit.Controls.Add(splitContainerCardEdit);
+            tabPageCardEdit.Location = new Point(4, 29);
+            tabPageCardEdit.Margin = new Padding(1, 2, 1, 2);
             tabPageCardEdit.Name = "tabPageCardEdit";
-            tabPageCardEdit.Padding = new Padding(3);
-            tabPageCardEdit.Size = new Size(1699, 881);
+            tabPageCardEdit.Padding = new Padding(1, 2, 1, 2);
+            tabPageCardEdit.Size = new Size(756, 451);
             tabPageCardEdit.TabIndex = 1;
             tabPageCardEdit.Text = "Card Edit";
             tabPageCardEdit.UseVisualStyleBackColor = true;
@@ -180,10 +185,11 @@
             // tabPageCodeView
             // 
             tabPageCodeView.Controls.Add(splitContainer);
-            tabPageCodeView.Location = new Point(10, 56);
+            tabPageCodeView.Location = new Point(4, 29);
+            tabPageCodeView.Margin = new Padding(1, 2, 1, 2);
             tabPageCodeView.Name = "tabPageCodeView";
-            tabPageCodeView.Padding = new Padding(3);
-            tabPageCodeView.Size = new Size(1699, 881);
+            tabPageCodeView.Padding = new Padding(1, 2, 1, 2);
+            tabPageCodeView.Size = new Size(756, 451);
             tabPageCodeView.TabIndex = 0;
             tabPageCodeView.Text = "Code View";
             tabPageCodeView.UseVisualStyleBackColor = true;
@@ -193,23 +199,31 @@
             CodeViewMenuStrip.ImageScalingSize = new Size(40, 40);
             CodeViewMenuStrip.Items.AddRange(new ToolStripItem[] { openToolStripMenuItem });
             CodeViewMenuStrip.Name = "CodeViewMenuStrip";
-            CodeViewMenuStrip.Size = new Size(173, 50);
+            CodeViewMenuStrip.Size = new Size(115, 28);
             // 
             // openToolStripMenuItem
             // 
             openToolStripMenuItem.Name = "openToolStripMenuItem";
-            openToolStripMenuItem.Size = new Size(172, 46);
+            openToolStripMenuItem.Size = new Size(114, 24);
             openToolStripMenuItem.Text = "Open";
+            // 
+            // splitContainerCardEdit
+            // 
+            splitContainerCardEdit.Dock = DockStyle.Fill;
+            splitContainerCardEdit.Location = new Point(1, 2);
+            splitContainerCardEdit.Name = "splitContainerCardEdit";
+            splitContainerCardEdit.Size = new Size(754, 447);
+            splitContainerCardEdit.SplitterDistance = 251;
+            splitContainerCardEdit.TabIndex = 0;
             // 
             // EOProcesser
             // 
-            AutoScaleDimensions = new SizeF(18F, 39F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1719, 998);
+            ClientSize = new Size(764, 512);
             Controls.Add(tabControl);
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
-            Margin = new Padding(7, 6, 7, 6);
             Name = "EOProcesser";
             Text = "ERAOCG Card Manager v0.1 by JoyJ";
             Load += EOProcesser_Load;
@@ -225,8 +239,11 @@
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             tabControl.ResumeLayout(false);
+            tabPageCardEdit.ResumeLayout(false);
             tabPageCodeView.ResumeLayout(false);
             CodeViewMenuStrip.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).EndInit();
+            splitContainerCardEdit.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -247,5 +264,6 @@
         private ToolStripMenuItem openToolStripMenuItem;
         private SplitContainer splitContainer1;
         private TextBox txtCode;
+        private SplitContainer splitContainerCardEdit;
     }
 }
