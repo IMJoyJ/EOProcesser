@@ -270,6 +270,11 @@ namespace EOProcesser
             Add(subCase);
         }
 
+        public void AddCase(ERACodeSelectCaseSubCase subCase)
+        {
+            Add(subCase);
+        }
+
         public void AddCase(string? caseValue, ERACodeMultiLines codeSegment)
         {
             ERACodeSelectCaseSubCase subCase = new(caseValue, codeSegment)
