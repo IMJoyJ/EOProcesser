@@ -49,5 +49,10 @@ namespace EOProcesser
         {
             Settings.RootFolder = txtRootFolder.Text;
         }
+
+        private void txtCardFolder_TextChanged(object sender, EventArgs e)
+        {
+            Settings.CardFolder = txtCardFolder.Text;
+        }
     }
 }

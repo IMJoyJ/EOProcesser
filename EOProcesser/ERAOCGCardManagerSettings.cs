@@ -11,5 +11,7 @@ namespace EOProcesser
     {
         [JsonInclude]
         public string RootFolder { get; set; } = "";
+        [JsonInclude]
+        public string CardFolder { get; set; } = "";
     }
 }
