@@ -25,6 +25,7 @@ namespace EOProcesser
             }
             InitializeComponent();
             txtRootFolder.Text = Settings.RootFolder;
+            txtCardFolder.Text = Settings.CardFolder;
         }
 
         private void btnSelectRootFolder_Click(object sender, EventArgs e)

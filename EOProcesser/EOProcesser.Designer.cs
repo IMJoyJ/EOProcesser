@@ -40,10 +40,13 @@
             exitToolStripMenuItem = new ToolStripMenuItem();
             tabControl = new TabControl();
             tabPageCardEdit = new TabPage();
+            splitContainerCardEdit = new SplitContainer();
+            txtSearchCard = new TextBox();
+            treeCards = new TreeView();
             tabPageCodeView = new TabPage();
             CodeViewMenuStrip = new ContextMenuStrip(components);
             openToolStripMenuItem = new ToolStripMenuItem();
-            splitContainerCardEdit = new SplitContainer();
+            bwLoadCards = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
             splitContainer.Panel1.SuspendLayout();
             splitContainer.Panel2.SuspendLayout();
@@ -55,10 +58,11 @@
             menuStrip.SuspendLayout();
             tabControl.SuspendLayout();
             tabPageCardEdit.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).BeginInit();
+            splitContainerCardEdit.Panel1.SuspendLayout();
+            splitContainerCardEdit.SuspendLayout();
             tabPageCodeView.SuspendLayout();
             CodeViewMenuStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).BeginInit();
-            splitContainerCardEdit.SuspendLayout();
             SuspendLayout();
             // 
             // splitContainer
@@ -182,6 +186,36 @@
             tabPageCardEdit.Text = "Card Edit";
             tabPageCardEdit.UseVisualStyleBackColor = true;
             // 
+            // splitContainerCardEdit
+            // 
+            splitContainerCardEdit.Dock = DockStyle.Fill;
+            splitContainerCardEdit.Location = new Point(1, 2);
+            splitContainerCardEdit.Name = "splitContainerCardEdit";
+            // 
+            // splitContainerCardEdit.Panel1
+            // 
+            splitContainerCardEdit.Panel1.Controls.Add(txtSearchCard);
+            splitContainerCardEdit.Panel1.Controls.Add(treeCards);
+            splitContainerCardEdit.Size = new Size(754, 447);
+            splitContainerCardEdit.SplitterDistance = 251;
+            splitContainerCardEdit.TabIndex = 0;
+            // 
+            // txtSearchCard
+            // 
+            txtSearchCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtSearchCard.Location = new Point(3, 3);
+            txtSearchCard.Name = "txtSearchCard";
+            txtSearchCard.Size = new Size(245, 27);
+            txtSearchCard.TabIndex = 1;
+            // 
+            // treeCards
+            // 
+            treeCards.Dock = DockStyle.Bottom;
+            treeCards.Location = new Point(0, 33);
+            treeCards.Name = "treeCards";
+            treeCards.Size = new Size(251, 414);
+            treeCards.TabIndex = 0;
+            // 
             // tabPageCodeView
             // 
             tabPageCodeView.Controls.Add(splitContainer);
@@ -207,14 +241,11 @@
             openToolStripMenuItem.Size = new Size(114, 24);
             openToolStripMenuItem.Text = "Open";
             // 
-            // splitContainerCardEdit
+            // bwLoadCards
             // 
-            splitContainerCardEdit.Dock = DockStyle.Fill;
-            splitContainerCardEdit.Location = new Point(1, 2);
-            splitContainerCardEdit.Name = "splitContainerCardEdit";
-            splitContainerCardEdit.Size = new Size(754, 447);
-            splitContainerCardEdit.SplitterDistance = 251;
-            splitContainerCardEdit.TabIndex = 0;
+            bwLoadCards.WorkerReportsProgress = true;
+            bwLoadCards.DoWork += bwLoadCards_DoWork;
+            bwLoadCards.ProgressChanged += bwLoadCards_ProgressChanged;
             // 
             // EOProcesser
             // 
@@ -227,6 +258,7 @@
             Name = "EOProcesser";
             Text = "ERAOCG Card Manager v0.1 by JoyJ";
             Load += EOProcesser_Load;
+            Shown += EOProcesser_Shown;
             splitContainer.Panel1.ResumeLayout(false);
             splitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer).EndInit();
@@ -240,10 +272,12 @@
             menuStrip.PerformLayout();
             tabControl.ResumeLayout(false);
             tabPageCardEdit.ResumeLayout(false);
-            tabPageCodeView.ResumeLayout(false);
-            CodeViewMenuStrip.ResumeLayout(false);
+            splitContainerCardEdit.Panel1.ResumeLayout(false);
+            splitContainerCardEdit.Panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).EndInit();
             splitContainerCardEdit.ResumeLayout(false);
+            tabPageCodeView.ResumeLayout(false);
+            CodeViewMenuStrip.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -265,5 +299,8 @@
         private SplitContainer splitContainer1;
         private TextBox txtCode;
         private SplitContainer splitContainerCardEdit;
+        private TextBox txtSearchCard;
+        private TreeView treeCards;
+        private System.ComponentModel.BackgroundWorker bwLoadCards;
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EOProcesser
 {
@@ -25,25 +28,157 @@ namespace EOProcesser
             }
             catch { }
 
-            LoadFolderTreeView();
+            LoadCodeFolderTreeView();
         }
 
-        private void LoadFolderTreeView()
+
+        int loadedCards = 0;
+        private SemaphoreSlim semaphore = new SemaphoreSlim(16); // 限制最大并行度为16
+        private ConcurrentBag<(string FilePath, TreeNode[] Nodes)> processedScripts = new ConcurrentBag<(string, TreeNode[])>();
+
+        private async Task<TreeNode?> LoadCardTreeView()
+        {
+            if (string.IsNullOrEmpty(settings.CardFolder))
+                return null;
+
+            try
+            {
+                // 创建根节点
+                TreeNode rootNode = new(Path.GetFileName(settings.CardFolder))
+                {
+                    Tag = settings.CardFolder
+                };
+
+                // 重置计数器和结果集合
+                loadedCards = 0;
+                processedScripts.Clear();
+
+                // 收集所有.erb文件
+                var allErbFiles = new List<string>();
+                CollectAllErbFiles(settings.CardFolder, allErbFiles);
+
+                // 获取所有子目录
+                var allDirectories = Directory.GetDirectories(settings.CardFolder, "*", SearchOption.AllDirectories)
+                    .Append(settings.CardFolder) // 包括根目录
+                    .ToDictionary(dir => dir, dir => new TreeNode(Path.GetFileName(dir)) { Tag = dir });
+
+                // 建立目录树结构
+                foreach (var dir in allDirectories.Keys.OrderBy(d => d.Length))
+                {
+                    if (dir == settings.CardFolder) continue; // 根目录已经创建
+
+                    var parentDir = Path.GetDirectoryName(dir);
+                    if (parentDir != null && allDirectories.TryGetValue(parentDir, out var parentNode))
+                    {
+                        parentNode.Nodes.Add(allDirectories[dir]);
+                    }
+                }
+
+                // 并行处理所有文件
+                var tasks = allErbFiles.Select(file => ProcessCardFileAsync(file));
+                await Task.WhenAll(tasks);
+
+                // 将处理好的文件添加到对应的目录节点
+                foreach (var (filePath, nodes) in processedScripts)
+                {
+                    var dirPath = Path.GetDirectoryName(filePath);
+                    if (dirPath != null && allDirectories.TryGetValue(dirPath, out var dirNode))
+                    {
+                        dirNode.Nodes.AddRange(nodes);
+                    }
+                }
+
+                return rootNode;
+            }
+            catch (Exception ex)
+#if DEBUG
+            when (false)
+#endif
+            {
+                return null;
+            }
+        }
+
+        private void CollectAllErbFiles(string rootFolder, List<string> files)
+        {
+            try
+            {
+                // 添加当前目录下的所有.erb文件
+                files.AddRange(Directory.GetFiles(rootFolder, "*.erb"));
+
+                // 递归处理所有子目录
+                foreach (var dir in Directory.GetDirectories(rootFolder))
+                {
+                    CollectAllErbFiles(dir, files);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error collecting files: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task ProcessCardFileAsync(string file)
+        {
+            try
+            {
+                await semaphore.WaitAsync(); // 获取信号量，限制并行度
+                
+                try
+                {
+                    ERAOCGCardScript script = new(file);
+                    Interlocked.Increment(ref loadedCards);
+                    bwLoadCards.ReportProgress(0);
+                    
+                    var nodes = script.GetTreeNode();
+                    if (nodes != null)
+                    {
+                        processedScripts.Add((file, nodes.ToArray()));
+                    }
+                }
+                catch
+                {
+                    // 处理单个文件的异常，但继续处理其他文件
+                }
+                finally
+                {
+                    semaphore.Release(); // 释放信号量
+                }
+            }
+            catch (Exception ex)
+            {
+                // 捕获任何其他异常
+            }
+        }
+
+        // 保留原来的PopulateCardTreeView方法的签名，但内部实现已改变，主要功能已移至LoadCardTreeView和ProcessCardFileAsync
+        private async Task PopulateCardTreeView(string folderPath, TreeNode parentNode)
+        {
+            // 此方法保留以维持兼容性，但实际逻辑已移至新的实现
+            // 可以为空，或者添加一些日志记录功能
+        }
+
+        private void LoadCodeFolderTreeView()
         {
             tvFolderFiles.Nodes.Clear();
 
             if (!string.IsNullOrEmpty(settings.RootFolder))
             {
-                // Create a root node for the folder
-                TreeNode rootNode = new TreeNode(Path.GetFileName(settings.RootFolder));
-                rootNode.Tag = settings.RootFolder;
-                tvFolderFiles.Nodes.Add(rootNode);
+                try
+                {
+                    // Create a root node for the folder
+                    TreeNode rootNode = new(Path.GetFileName(settings.RootFolder));
+                    rootNode.Tag = settings.RootFolder;
+                    tvFolderFiles.Nodes.Add(rootNode);
 
-                // Populate the TreeView with .erb files
-                PopulateTreeView(settings.RootFolder, rootNode);
+                    // Populate the TreeView with .erb files
+                    PopulateTreeView(settings.RootFolder, rootNode);
 
-                // Expand the root node
-                rootNode.Expand();
+                    // Expand the root node
+                    rootNode.Expand();
+                }
+                catch { }
             }
         }
 
@@ -129,7 +264,7 @@ namespace EOProcesser
                 // If RootFolder changed, reload the TreeView
                 if (settings.RootFolder != previousRootFolder)
                 {
-                    LoadFolderTreeView();
+                    LoadCodeFolderTreeView();
                 }
             }
         }
@@ -142,7 +277,7 @@ namespace EOProcesser
                 openToolStripMenuItem.Click -= OpenFile_Click;
                 openToolStripMenuItem.Click += OpenFile_Click;
                 openToolStripMenuItem.Tag = filePath;
-                
+
                 // Show the context menu
                 CodeViewMenuStrip.Show(tvFolderFiles, e.Location);
             }
@@ -169,6 +304,32 @@ namespace EOProcesser
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void EOProcesser_Shown(object sender, EventArgs e)
+        {
+            bwLoadCards.RunWorkerAsync();
+        }
+
+        private async void bwLoadCards_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            loadedCards = 0;
+            var node = await LoadCardTreeView();
+            if (node != null)
+            {
+                Invoke(new Action(() =>
+                {
+                    treeCards.Nodes.Clear();
+                    treeCards.Nodes.Add(node);
+                    node.Expand();
+                }));
+            }
+        }
+
+        private void bwLoadCards_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            txtSearchCard.Enabled = false;
+            txtSearchCard.Text = $"Loaded {loadedCards} cards...";
         }
     }
 }
