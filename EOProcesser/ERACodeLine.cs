@@ -90,7 +90,15 @@ namespace EOProcesser
             var match = _pattern.Match(codeLine);
             if (!match.Success)
             {
-                throw new FormatException("Not a valid PRINT line.");
+                if (codeLine.Trim() == "PRINTL")
+                {
+                    PrintType = "L";
+                    Content = null;
+                }
+                else
+                {
+                    throw new FormatException("Not a valid PRINT line.");
+                }
             }
             
             PrintType = match.Groups[1].Success ? match.Groups[1].Value : null;
@@ -99,10 +107,10 @@ namespace EOProcesser
 
         public override bool CanParse(string line)
         {
-            return _pattern.IsMatch(line);
+            return _pattern.IsMatch(line) || line.Trim() == "PRINTL";
         }
 
-        public override string GetNodeText() => $"(表示:{PrintType}) {Content ?? ""}";
+        public override string GetNodeText() => $"(PRINT{PrintType}) {Content ?? ""}";
     }
 
     public class ERACodeDimLine : ERACodeLine
