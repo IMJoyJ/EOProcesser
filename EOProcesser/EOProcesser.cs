@@ -33,6 +33,7 @@ namespace EOProcesser
 
 
         int loadedCards = 0;
+        int allCards = 0;
         private SemaphoreSlim semaphore = new SemaphoreSlim(16); // 限制最大并行度为16
         private ConcurrentBag<(string FilePath, TreeNode[] Nodes)> processedScripts = new ConcurrentBag<(string, TreeNode[])>();
 
@@ -43,11 +44,6 @@ namespace EOProcesser
 
             try
             {
-                // 创建根节点
-                TreeNode rootNode = new(Path.GetFileName(settings.CardFolder))
-                {
-                    Tag = settings.CardFolder
-                };
 
                 // 重置计数器和结果集合
                 loadedCards = 0;
@@ -56,6 +52,7 @@ namespace EOProcesser
                 // 收集所有.erb文件
                 var allErbFiles = new List<string>();
                 CollectAllErbFiles(settings.CardFolder, allErbFiles);
+                allCards = allErbFiles.Count;
 
                 // 获取所有子目录
                 var allDirectories = Directory.GetDirectories(settings.CardFolder, "*", SearchOption.AllDirectories)
@@ -88,7 +85,9 @@ namespace EOProcesser
                     }
                 }
 
-                return rootNode;
+                // 返回根节点
+                return allDirectories[settings.CardFolder];
+
             }
             catch (Exception ex)
 #if DEBUG
@@ -124,13 +123,13 @@ namespace EOProcesser
             try
             {
                 await semaphore.WaitAsync(); // 获取信号量，限制并行度
-                
+
                 try
                 {
                     ERAOCGCardScript script = new(file);
                     Interlocked.Increment(ref loadedCards);
                     bwLoadCards.ReportProgress(0);
-                    
+
                     var nodes = script.GetTreeNode();
                     if (nodes != null)
                     {
@@ -329,7 +328,111 @@ namespace EOProcesser
         private void bwLoadCards_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
             txtSearchCard.Enabled = false;
-            txtSearchCard.Text = $"Loaded {loadedCards} cards...";
+            txtSearchCard.Text = $"Loaded {loadedCards}/{allCards} cards...";
+        }
+
+        private void bwLoadCards_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        {
+            txtSearchCard.Text = "";
+            txtSearchCard.Enabled = true;
+        }
+
+        private void txtSearchCard_TextChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void ShowAllNodes(TreeNodeCollection nodes)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                // Reset all visual indicators
+                node.ForeColor = SystemColors.WindowText;  // Reset color to default
+                node.BackColor = SystemColors.Window;      // Reset background color
+                node.Checked = false;                      // Uncheck the node
+
+                // Recursively reset all child nodes
+                if (node.Nodes.Count > 0)
+                {
+                    ShowAllNodes(node.Nodes);
+                    node.Collapse();  // Collapse after processing children for proper state reset
+                }
+            }
+        }
+
+        private bool SearchNodes(TreeNode node, string searchText)
+        {
+            // Flag to track if this node or any child nodes match the search
+            bool anyMatches = false;
+
+            // Check if the current node text matches the search criteria
+            bool currentNodeMatches = node.Text.ToLower().Contains(searchText);
+            if (currentNodeMatches)
+            {
+                node.ForeColor = Color.Blue;  // Highlight matching nodes
+                node.BackColor = Color.LightYellow;
+                node.Checked = true;
+                anyMatches = true;
+            }
+            else
+            {
+                // Reset this node's appearance if it doesn't match
+                node.ForeColor = SystemColors.WindowText;
+                node.BackColor = SystemColors.Window;
+                node.Checked = false;
+            }
+
+            // Recursively search child nodes
+            bool childrenMatch = false;
+            foreach (TreeNode childNode in node.Nodes)
+            {
+                if (SearchNodes(childNode, searchText))
+                {
+                    childrenMatch = true;
+                }
+            }
+
+            // If any children match, expand this node and mark it as having matches
+            if (childrenMatch)
+            {
+                node.Expand();
+                anyMatches = true;
+            }
+            else if (!currentNodeMatches)
+            {
+                node.Collapse();
+            }
+
+            return anyMatches;
+        }
+
+        private void txtSearchCard_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;  // Prevent the Enter key from creating a new line
+                btnSearch_Click(sender, e);  // Trigger the search button click
+            }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            if (!txtSearchCard.Enabled)
+            {
+                return;
+            }
+            string searchText = txtSearchCard.Text.Trim().ToLower();
+            if (string.IsNullOrEmpty(searchText))
+            {
+                // If search text is empty, show all nodes
+                ShowAllNodes(treeCards.Nodes);
+                return;
+            }
+
+            // Start the search process
+            foreach (TreeNode node in treeCards.Nodes)
+            {
+                SearchNodes(node, searchText);
+            }
         }
     }
 }

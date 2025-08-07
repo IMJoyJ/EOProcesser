@@ -237,6 +237,18 @@ namespace EOProcesser
     public class ERACodeSelectCase(string condition)
         : ERABlockSegment($"SELECTCASE {condition}", "ENDSELECT")
     {
+        public string? GetValue(string c)
+        {
+            var caseSubCodes = codes.OfType<ERACodeSelectCaseSubCase>().ToList();
+            foreach (var subCase in caseSubCodes)
+            {
+                if (subCase.CaseValue == c)
+                {
+                    return subCase.GetValue();
+                }
+            }
+            return null;
+        }
         public string Condition { get; private set; } = condition;
 
         public void AddCase(string caseValue, string returnValue)
@@ -274,11 +286,11 @@ namespace EOProcesser
         public string? GetValue()
         {
             var valList = GetValueList();
-            if (valList.Count > 0)
+            if (valList.Count > 1)
             {
                 return string.Join(", ", valList.Select((vk) => $"{vk.Key} = {vk.Value}"));
             }
-            return "";
+            return valList.ElementAt(0).Value;
         }
 
         public Dictionary<string, string> GetValueList()

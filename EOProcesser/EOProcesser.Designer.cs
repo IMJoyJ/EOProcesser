@@ -41,6 +41,7 @@
             tabControl = new TabControl();
             tabPageCardEdit = new TabPage();
             splitContainerCardEdit = new SplitContainer();
+            btnSearch = new Button();
             txtSearchCard = new TextBox();
             treeCards = new TreeView();
             tabPageCodeView = new TabPage();
@@ -194,26 +195,39 @@
             // 
             // splitContainerCardEdit.Panel1
             // 
+            splitContainerCardEdit.Panel1.Controls.Add(btnSearch);
             splitContainerCardEdit.Panel1.Controls.Add(txtSearchCard);
             splitContainerCardEdit.Panel1.Controls.Add(treeCards);
             splitContainerCardEdit.Size = new Size(754, 447);
             splitContainerCardEdit.SplitterDistance = 251;
             splitContainerCardEdit.TabIndex = 0;
             // 
+            // btnSearch
+            // 
+            btnSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSearch.Location = new Point(196, 3);
+            btnSearch.Name = "btnSearch";
+            btnSearch.Size = new Size(52, 29);
+            btnSearch.TabIndex = 2;
+            btnSearch.Text = "检索";
+            btnSearch.UseVisualStyleBackColor = true;
+            btnSearch.Click += btnSearch_Click;
+            // 
             // txtSearchCard
             // 
             txtSearchCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtSearchCard.Location = new Point(3, 3);
             txtSearchCard.Name = "txtSearchCard";
-            txtSearchCard.Size = new Size(245, 27);
+            txtSearchCard.Size = new Size(187, 27);
             txtSearchCard.TabIndex = 1;
+            txtSearchCard.KeyDown += txtSearchCard_KeyDown;
             // 
             // treeCards
             // 
-            treeCards.Dock = DockStyle.Bottom;
-            treeCards.Location = new Point(0, 33);
+            treeCards.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            treeCards.Location = new Point(0, 36);
             treeCards.Name = "treeCards";
-            treeCards.Size = new Size(251, 414);
+            treeCards.Size = new Size(251, 411);
             treeCards.TabIndex = 0;
             // 
             // tabPageCodeView
@@ -246,6 +260,7 @@
             bwLoadCards.WorkerReportsProgress = true;
             bwLoadCards.DoWork += bwLoadCards_DoWork;
             bwLoadCards.ProgressChanged += bwLoadCards_ProgressChanged;
+            bwLoadCards.RunWorkerCompleted += bwLoadCards_RunWorkerCompleted;
             // 
             // EOProcesser
             // 
@@ -302,5 +317,6 @@
         private TextBox txtSearchCard;
         private TreeView treeCards;
         private System.ComponentModel.BackgroundWorker bwLoadCards;
+        private Button btnSearch;
     }
 }

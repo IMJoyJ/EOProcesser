@@ -193,7 +193,7 @@ namespace EOProcesser
     public class ERAOCGCard
     {
         public ERAOCGCardScript CardScript;
-        public string Name = "";
+        public string Name;
         public int Id = -1;
         public ERACodeFuncSegment? GetCardNameFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
         public ERACodeFuncSegment? GetCardInfoFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
@@ -205,9 +205,23 @@ namespace EOProcesser
         {
             CardScript = script;
             Id = cardId;
-            if (GetCardNameFunc() == null || GetCardInfoFunc() == null)
+            var nameFunc = GetCardNameFunc();
+            if (nameFunc == null || GetCardInfoFunc() == null)
             {
                 throw new InvalidOperationException("Missing required information to create card");
+            }
+
+            foreach (var code in nameFunc)
+            {
+                if (code is ERACodeSelectCase selectCase)
+                {
+                    var n = selectCase.GetValue(@"""名前""");
+                    if (n != null)
+                    {
+                        Name = n;
+                        break;
+                    }
+                }
             }
         }
 
