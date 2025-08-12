@@ -9,6 +9,19 @@ namespace EOProcesser
 {
     public static class ERACodeAnalyzer
     {
+        public static ERACodeMultiLines AnalyzeCode(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                return [];
+            }
+            
+            // 以\n分割代码字符串
+            string[] lines = code.Split('\n');
+            
+            // 调用原有的处理多行代码的方法
+            return AnalyzeCode(lines);
+        }
         public static ERACodeMultiLines AnalyzeCode(IEnumerable<string> codes)
         {
             var codeLines = codes.ToList();
