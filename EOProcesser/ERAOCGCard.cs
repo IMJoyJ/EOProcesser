@@ -187,26 +187,47 @@ namespace EOProcesser
             {
                 list.AddRange(card.GetTreeNode());
             }
-            return list;
+            return [new TreeNode(new FileInfo(this.ScriptFile).Name,
+                    [.. list]) { Tag = this } ];
         }
     }
     public class ERAOCGCard
     {
         public ERAOCGCardScript CardScript;
         public string Name;
+        public string ShortName;
         public int Id = -1;
         public ERACodeFuncSegment? GetCardNameFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
-        public ERACodeFuncSegment? GetCardInfoFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
-        public ERACodeFuncSegment? GetCardExplanationFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
+        public ERACodeFuncSegment? GetCardInfoFunc() => CardScript.GetFunc($"CARD_{Id}");
+        public ERACodeFuncSegment? GetCardExplanationFunc() => CardScript.GetFunc($"CARD_EXPLANATION_{Id}");
         public ERACodeFuncSegment? GetCardCanFunc() => CardScript.GetFunc($"CARDCAN_{Id}");
         public ERACodeFuncSegment? GetCardAAFunc() => CardScript.GetFunc($"CARDSUMMON_AA_{Id}");
+        public ERACodeFuncSegment? GetCardEffectFunc() => CardScript.GetFunc($"CARDEFFECT_{Id}");
+        public List<string> GetCardCategory()
+        {
+            var func = GetCardNameFunc();
+            if (func == null)
+            {
+                return [];
+            }
+            List<string> result = [];
+            if (func.FirstOrDefault((func) => func is ERACodeSelectCase)
+                is ERACodeSelectCase selectCase)
+            {
+                if (selectCase.GetValueList(@"""カテゴリ""") is Dictionary<string, string> dic)
+                {
+                    return [.. dic.Values];
+                }
+            }
+            return result;
+        }
 
         public ERAOCGCard(ERAOCGCardScript script, int cardId)
         {
             CardScript = script;
             Id = cardId;
             var nameFunc = GetCardNameFunc();
-            if (nameFunc == null || GetCardInfoFunc() == null)
+            if (nameFunc == null)
             {
                 throw new InvalidOperationException("Missing required information to create card");
             }
@@ -218,10 +239,18 @@ namespace EOProcesser
                     var n = selectCase.GetValue(@"""名前""");
                     if (n != null)
                     {
-                        Name = n;
-                        break;
+                        Name ??= n;
+                    }
+                    n = selectCase.GetValue(@"""略称""");
+                    if (n != null)
+                    {
+                        ShortName ??= n;
                     }
                 }
+            }
+            if (Name == null || ShortName == null)
+            {
+                throw new InvalidOperationException("Missing required information to create card");
             }
         }
 
@@ -231,7 +260,7 @@ namespace EOProcesser
         }
         public List<TreeNode> GetTreeNode()
         {
-            return [new(ToString())];
+            return [new(ToString()) { Tag = this }];
         }
     }
 }
