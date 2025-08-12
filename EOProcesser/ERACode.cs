@@ -235,7 +235,7 @@ namespace EOProcesser
         }
     }
     public class ERACodeSelectCase(string condition)
-        : ERABlockSegment($"SELECTCASE {condition}", "ENDSELECT")
+        : ERABlockSegment($"SELECTCASE {condition}", "ENDSELECT"),IEnumerable<ERACodeSelectCaseSubCase>
     {
         public string? GetValue(string c)
         {
@@ -249,12 +249,26 @@ namespace EOProcesser
             }
             return null;
         }
+        public Dictionary<string, string>? GetValueList(string c)
+        {
+            var caseSubCodes = codes.OfType<ERACodeSelectCaseSubCase>().ToList();
+            foreach (var subCase in caseSubCodes)
+            {
+                if (subCase.CaseValue == c)
+                {
+                    return subCase.GetValueList();
+                }
+            }
+            return null;
+        }
         public string Condition { get; private set; } = condition;
 
         public void AddCase(string caseValue, string returnValue)
         {
-            ERACodeSelectCaseSubCase subCase = new(caseValue, returnValue);
-            subCase.Indentation = this.Indentation + 1;
+            ERACodeSelectCaseSubCase subCase = new(caseValue, returnValue)
+            {
+                Indentation = this.Indentation + 1
+            };
             Add(subCase);
         }
 
@@ -270,6 +284,17 @@ namespace EOProcesser
                 Indentation = this.Indentation + 1
             };
             Add(subCase);
+        }
+
+        IEnumerator<ERACodeSelectCaseSubCase> IEnumerable<ERACodeSelectCaseSubCase>.GetEnumerator()
+        {
+            foreach(var code in this.codes)
+            {
+                if (code is ERACodeSelectCaseSubCase c)
+                {
+                    yield return c;
+                }
+            }
         }
     }
 
@@ -290,7 +315,11 @@ namespace EOProcesser
             {
                 return string.Join(", ", valList.Select((vk) => $"{vk.Key} = {vk.Value}"));
             }
-            return valList.ElementAt(0).Value;
+            if (valList.Count > 0)
+            {
+                return valList.ElementAt(0).Value;
+            }
+            return null;
         }
 
         public Dictionary<string, string> GetValueList()
@@ -405,7 +434,7 @@ namespace EOProcesser
                 }
             }
         }
-        public string Condition { get; private set; }
+        public string Condition { get; set; }
         private List<ERACodeElseSegment> elseSegments = [];
 
         public ERACodeIfSegment(string condition)
@@ -477,8 +506,10 @@ namespace EOProcesser
 
         public void AddElse(IEnumerable<ERACode> codeBlock)
         {
-            ERACodeElseSegment elseSegment = new(null, codeBlock);
-            elseSegment.Indentation = this.Indentation;
+            ERACodeElseSegment elseSegment = new(null, codeBlock)
+            {
+                Indentation = this.Indentation
+            };
             elseSegments.Add(elseSegment);
         }
 
