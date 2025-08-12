@@ -18,7 +18,7 @@ namespace EOProcesser
             Application.Exit();
         }
 
-        ERAOCGCardManagerSettings settings = new ERAOCGCardManagerSettings();
+        ERAOCGCardManagerSettings settings = new();
 
         private void EOProcesser_Load(object sender, EventArgs e)
         {
@@ -34,14 +34,13 @@ namespace EOProcesser
 
         int loadedCards = 0;
         int allCards = 0;
-        private SemaphoreSlim semaphore = new SemaphoreSlim(16); // 限制最大并行度为16
-        private ConcurrentBag<(string FilePath, TreeNode[] Nodes)> processedScripts = new ConcurrentBag<(string, TreeNode[])>();
+        private readonly SemaphoreSlim semaphore = new(16); // 限制最大并行度为16
+        private readonly ConcurrentBag<(string FilePath, TreeNode[] Nodes)> processedScripts = [];
 
         private async Task<TreeNode?> LoadCardTreeView()
         {
             if (string.IsNullOrEmpty(settings.CardFolder))
                 return null;
-
             try
             {
 
@@ -91,10 +90,14 @@ namespace EOProcesser
             }
             catch (Exception ex)
 #if DEBUG
+#pragma warning disable CS8360 // 筛选器表达式是常量 “false”。
             when (false)
+#pragma warning restore CS8360 // 筛选器表达式是常量 “false”。
 #endif
             {
+#pragma warning disable CS0162 // 检测到无法访问的代码
                 return null;
+#pragma warning restore CS0162 // 检测到无法访问的代码
             }
         }
 
@@ -151,13 +154,6 @@ namespace EOProcesser
             }
         }
 
-        // 保留原来的PopulateCardTreeView方法的签名，但内部实现已改变，主要功能已移至LoadCardTreeView和ProcessCardFileAsync
-        private async Task PopulateCardTreeView(string folderPath, TreeNode parentNode)
-        {
-            // 此方法保留以维持兼容性，但实际逻辑已移至新的实现
-            // 可以为空，或者添加一些日志记录功能
-        }
-
         private void LoadCodeFolderTreeView()
         {
             tvFolderFiles.Nodes.Clear();
@@ -167,8 +163,10 @@ namespace EOProcesser
                 try
                 {
                     // Create a root node for the folder
-                    TreeNode rootNode = new(Path.GetFileName(settings.RootFolder));
-                    rootNode.Tag = settings.RootFolder;
+                    TreeNode rootNode = new(Path.GetFileName(settings.RootFolder))
+                    {
+                        Tag = settings.RootFolder
+                    };
                     tvFolderFiles.Nodes.Add(rootNode);
 
                     // Populate the TreeView with .erb files
@@ -189,8 +187,10 @@ namespace EOProcesser
                 foreach (string file in Directory.GetFiles(folderPath, "*.erb"))
                 {
                     string fileName = Path.GetFileName(file);
-                    TreeNode fileNode = new TreeNode(fileName);
-                    fileNode.Tag = file;
+                    TreeNode fileNode = new(fileName)
+                    {
+                        Tag = file
+                    };
                     parentNode.Nodes.Add(fileNode);
                 }
 
@@ -198,8 +198,10 @@ namespace EOProcesser
                 foreach (string subDir in Directory.GetDirectories(folderPath))
                 {
                     string dirName = Path.GetFileName(subDir);
-                    TreeNode dirNode = new TreeNode(dirName);
-                    dirNode.Tag = subDir;
+                    TreeNode dirNode = new(dirName)
+                    {
+                        Tag = subDir
+                    };
                     parentNode.Nodes.Add(dirNode);
 
                     // Recursively process subdirectories
@@ -365,7 +367,7 @@ namespace EOProcesser
             bool anyMatches = false;
 
             // Check if the current node text matches the search criteria
-            bool currentNodeMatches = node.Text.ToLower().Contains(searchText);
+            bool currentNodeMatches = node.Text.Contains(searchText, StringComparison.CurrentCultureIgnoreCase);
             if (currentNodeMatches)
             {
                 node.ForeColor = Color.Blue;  // Highlight matching nodes
@@ -432,6 +434,57 @@ namespace EOProcesser
             foreach (TreeNode node in treeCards.Nodes)
             {
                 SearchNodes(node, searchText);
+            }
+        }
+
+        private void treeCards_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node.Tag is ERAOCGCardScript script)
+            {
+                if (MessageBox.Show("保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    listCardScriptCard.Items.Clear();
+                    foreach (var card in script.Cards)
+                    {
+                        listCardScriptCard.Items.Add(card);
+                    }
+                }
+            }
+            else if (e.Node.Tag is ERAOCGCard card)
+            {
+                if (MessageBox.Show("カード所属のスクリプトを開きます。\n保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    listCardScriptCard.Items.Clear();
+                    foreach (var c in card.CardScript.Cards)
+                    {
+                        listCardScriptCard.Items.Add(c);
+                    }
+                }
+            }
+        }
+        private void listCardScriptCard_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (listCardScriptCard.SelectedItem is ERAOCGCard card)
+            {
+                if (MessageBox.Show("保存されてないデータが失われる。確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    txtCardName.Text = card.Name;
+                    txtShortName.Text = card.ShortName;
+                    listCardInfo.Items.Clear();
+                    listCategory.Items.Clear();
+                    listCategory.Items.AddRange([.. card.GetCardCategory()]);
+                    var func = card.GetCardInfoFunc();
+                    if (func != null)
+                    {
+                        var sel = (func.FirstOrDefault((f) => f is ERACodeSelectCase)
+                            as ERACodeSelectCase)
+                            ?? new ERACodeSelectCase("参照先");
+                        foreach(ERACodeSelectCaseSubCase caseVal in sel.Cast<ERACodeSelectCaseSubCase>())
+                        {
+                            listCardInfo.Items.Add(caseVal);
+                        }
+                    }
+                }
             }
         }
     }
