@@ -55,5 +55,23 @@ namespace EOProcesser
         {
             Settings.CardFolder = txtCardFolder.Text;
         }
+
+        private void btnSelectCardFolder_Click(object sender, EventArgs e)
+        {
+            using FolderBrowserDialog folderDialog = new();
+            folderDialog.Description = "Select Card Folder";
+            folderDialog.ShowNewFolderButton = true;
+
+            // If there's already a root folder set, start from there
+            if (!string.IsNullOrEmpty(Settings.CardFolder) && Directory.Exists(Settings.CardFolder))
+            {
+                folderDialog.SelectedPath = Settings.CardFolder;
+            }
+
+            if (folderDialog.ShowDialog() == DialogResult.OK)
+            {
+                txtCardFolder.Text = Settings.CardFolder;
+            }
+        }
     }
 }
