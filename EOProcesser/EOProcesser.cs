@@ -430,6 +430,20 @@ namespace EOProcesser
                 SearchNodes(node, searchText);
             }
         }
+        private void ClearAll()
+        {
+            listCategory.Items.Clear();
+            listCardInfo.Items.Clear();
+            txtCardName.Text = "";
+            txtShortName.Text = "";
+            treeCardEffectList.Nodes.Clear();
+            eeCardCan.ClearAll();
+            eeCardEffect.ClearAll();
+            eeCardExplanation.ClearAll();
+            eeCardManagerScriptEditor.ClearAll();
+            eeCardSummonAA.ClearAll();
+            eeExtraFuncs.ClearAll();
+        }
         string? CurrentFile = null;
         private void treeCards_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
@@ -437,6 +451,7 @@ namespace EOProcesser
             {
                 if (MessageBox.Show("保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
+                    ClearAll();
                     listCardScriptCard.Items.Clear();
                     foreach (var card in script.Cards)
                     {
@@ -449,7 +464,7 @@ namespace EOProcesser
             {
                 if (MessageBox.Show("カード所属のスクリプトを開きます。\n保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    listCardScriptCard.Items.Clear();
+                    ClearAll();
                     foreach (var c in card.CardScript.Cards)
                     {
                         listCardScriptCard.Items.Add(c);
@@ -507,6 +522,7 @@ namespace EOProcesser
 
                     CurrentCard = card;
                     tabCardEditPanel.SelectedIndex = 1;
+                    radioCMStandardEffect.Checked = true;
                 }
             }
             silent = false;
@@ -568,7 +584,7 @@ namespace EOProcesser
         {
             if (e.Node.Tag == null)
                 return;
-                
+
             if (e.Node.Tag is ERACode code)
             {
                 // 如果节点包含ERACode，将其加载到编辑器
@@ -578,28 +594,28 @@ namespace EOProcesser
             {
                 // 如果是字符串属性（如Condition），提示用户输入
                 string propertyName = e.Node.Text;
-                
+
                 // 从节点文本中提取属性名称（例如从"条件: xxx"提取"条件"）
                 if (propertyName.Contains(':'))
                 {
                     propertyName = propertyName.Substring(0, propertyName.IndexOf(':'));
                 }
-                
+
                 // 显示输入对话框
                 string prompt = $"请输入新的{propertyName}值:";
                 string title = $"修改{propertyName}";
-                
+
                 string? newValue = Microsoft.VisualBasic.Interaction.InputBox(prompt, title, strValue);
-                
+
                 // 如果用户输入了新值（不为空且不同于原值）
                 if (!string.IsNullOrEmpty(newValue) && newValue != strValue)
                 {
                     // 更新节点显示的文本
                     e.Node.Text = $"{propertyName}: {newValue}";
-                    
+
                     // 更新节点的Tag值
                     e.Node.Tag = newValue;
-                    
+
                     // 如果节点是某个效果对象的属性，还需要更新对应的对象
                     if (e.Node.Parent?.Tag is EOCardManagerEffect effect)
                     {
@@ -617,12 +633,41 @@ namespace EOProcesser
                 // 如果点击的是效果节点本身，可以编辑效果编号或其他主要属性
                 string? newEffectNo = Microsoft.VisualBasic.Interaction.InputBox(
                     "新しい効果計数を入力してください:", "効果計数", effect.EffectNo ?? "");
-                    
+
                 if (!string.IsNullOrEmpty(newEffectNo))
                 {
                     effect.EffectNo = newEffectNo;
                     e.Node.Text = $"效果{newEffectNo}";
                 }
+            }
+        }
+
+        private void treeCards_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            // Show context menu on right-click
+            if (e.Button == MouseButtons.Right)
+            {
+                if (e.Node.Tag is ERAOCGCardScript script)
+                {
+                    // Set the event handler for the Open menu item
+                    openToolStripMenuItem.Click -= OpenFile_Click;
+                    openToolStripMenuItem.Click += OpenFile_Click;
+                    openToolStripMenuItem.Tag = script.ScriptFile;
+                }
+                else if (e.Node.Tag is ERAOCGCard card)
+                {
+                    openToolStripMenuItem.Click -= OpenFile_Click;
+                    openToolStripMenuItem.Click += OpenFile_Click;
+                    openToolStripMenuItem.Tag = card.CardScript.ScriptFile;
+                }
+                else if (e.Node.Tag is string path)
+                {
+                    openToolStripMenuItem.Click -= OpenFile_Click;
+                    openToolStripMenuItem.Click += OpenFile_Click;
+                    openToolStripMenuItem.Tag = path;
+                }
+                // Show the context menu
+                CodeViewMenuStrip.Show(tvFolderFiles, e.Location);
             }
         }
     }

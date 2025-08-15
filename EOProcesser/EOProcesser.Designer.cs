@@ -73,6 +73,8 @@
             label6 = new Label();
             radioCustomStandardEffect = new RadioButton();
             radioCMStandardEffect = new RadioButton();
+            tabAA = new TabPage();
+            eeCardSummonAA = new EffectEditor();
             tabExtraFuncs = new TabPage();
             eeExtraFuncs = new EffectEditor();
             tabEffectFunc = new TabPage();
@@ -81,8 +83,6 @@
             eeCardExplanation = new EffectEditor();
             tabEffectCan = new TabPage();
             eeCardCan = new EffectEditor();
-            tabAA = new TabPage();
-            eeCardSummonAA = new EffectEditor();
             tabPageCodeView = new TabPage();
             splitContainer = new SplitContainer();
             tvFolderFiles = new TreeView();
@@ -105,11 +105,11 @@
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
             splitContainer1.SuspendLayout();
+            tabAA.SuspendLayout();
             tabExtraFuncs.SuspendLayout();
             tabEffectFunc.SuspendLayout();
             tabCardExplanation.SuspendLayout();
             tabEffectCan.SuspendLayout();
-            tabAA.SuspendLayout();
             tabPageCodeView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
             splitContainer.Panel1.SuspendLayout();
@@ -224,6 +224,7 @@
             treeCards.Name = "treeCards";
             treeCards.Size = new Size(196, 411);
             treeCards.TabIndex = 0;
+            treeCards.NodeMouseClick += treeCards_NodeMouseClick;
             treeCards.NodeMouseDoubleClick += treeCards_NodeMouseDoubleClick;
             // 
             // tabCardEditPanel
@@ -231,11 +232,11 @@
             tabCardEditPanel.Controls.Add(tabCardSelect);
             tabCardEditPanel.Controls.Add(tabCardInfoSettings);
             tabCardEditPanel.Controls.Add(tabEffect);
+            tabCardEditPanel.Controls.Add(tabAA);
             tabCardEditPanel.Controls.Add(tabExtraFuncs);
             tabCardEditPanel.Controls.Add(tabEffectFunc);
             tabCardEditPanel.Controls.Add(tabCardExplanation);
             tabCardEditPanel.Controls.Add(tabEffectCan);
-            tabCardEditPanel.Controls.Add(tabAA);
             tabCardEditPanel.Dock = DockStyle.Fill;
             tabCardEditPanel.Location = new Point(0, 0);
             tabCardEditPanel.Margin = new Padding(1, 2, 1, 2);
@@ -623,6 +624,25 @@
             radioCMStandardEffect.UseVisualStyleBackColor = true;
             radioCMStandardEffect.CheckedChanged += radioCMStandardEffect_CheckedChanged;
             // 
+            // tabAA
+            // 
+            tabAA.Controls.Add(eeCardSummonAA);
+            tabAA.Location = new Point(4, 29);
+            tabAA.Margin = new Padding(1, 2, 1, 2);
+            tabAA.Name = "tabAA";
+            tabAA.Size = new Size(530, 426);
+            tabAA.TabIndex = 4;
+            tabAA.Text = "召喚AA";
+            tabAA.UseVisualStyleBackColor = true;
+            // 
+            // eeCardSummonAA
+            // 
+            eeCardSummonAA.Dock = DockStyle.Fill;
+            eeCardSummonAA.Location = new Point(0, 0);
+            eeCardSummonAA.Name = "eeCardSummonAA";
+            eeCardSummonAA.Size = new Size(530, 426);
+            eeCardSummonAA.TabIndex = 1;
+            // 
             // tabExtraFuncs
             // 
             tabExtraFuncs.Controls.Add(eeExtraFuncs);
@@ -698,25 +718,6 @@
             eeCardCan.Name = "eeCardCan";
             eeCardCan.Size = new Size(530, 426);
             eeCardCan.TabIndex = 1;
-            // 
-            // tabAA
-            // 
-            tabAA.Controls.Add(eeCardSummonAA);
-            tabAA.Location = new Point(4, 29);
-            tabAA.Margin = new Padding(1, 2, 1, 2);
-            tabAA.Name = "tabAA";
-            tabAA.Size = new Size(530, 426);
-            tabAA.TabIndex = 4;
-            tabAA.Text = "召喚AA";
-            tabAA.UseVisualStyleBackColor = true;
-            // 
-            // eeCardSummonAA
-            // 
-            eeCardSummonAA.Dock = DockStyle.Fill;
-            eeCardSummonAA.Location = new Point(0, 0);
-            eeCardSummonAA.Name = "eeCardSummonAA";
-            eeCardSummonAA.Size = new Size(530, 426);
-            eeCardSummonAA.TabIndex = 1;
             // 
             // tabPageCodeView
             // 
@@ -819,11 +820,11 @@
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
+            tabAA.ResumeLayout(false);
             tabExtraFuncs.ResumeLayout(false);
             tabEffectFunc.ResumeLayout(false);
             tabCardExplanation.ResumeLayout(false);
             tabEffectCan.ResumeLayout(false);
-            tabAA.ResumeLayout(false);
             tabPageCodeView.ResumeLayout(false);
             splitContainer.Panel1.ResumeLayout(false);
             splitContainer.Panel2.ResumeLayout(false);
