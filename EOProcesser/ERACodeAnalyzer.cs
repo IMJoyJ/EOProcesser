@@ -15,7 +15,9 @@ namespace EOProcesser
             {
                 return [];
             }
-            
+
+            code = code.Replace("\r\n", "\n");
+
             // 以\n分割代码字符串
             string[] lines = code.Split('\n');
             
@@ -369,66 +371,140 @@ namespace EOProcesser
                 currentStart = point.index + 1;
             }
         }
-
         private static void ParseSelectCaseBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeSelectCase selectCaseSegment)
         {
-            int currentIndex = startIndex;
-
-            while (currentIndex <= endIndex)
+            // 改进后的方法，正确处理SELECTCASE和CASEELSE
+            List<(int index, string type, string? value)> casePoints = new();
+            
+            // 首先找出同级别的所有CASE和CASEELSE点
+            int nestingLevel = 0;
+            for (int i = startIndex; i <= endIndex; i++)
             {
-                string line = codeLines[currentIndex].TrimStart();
+                string line = codeLines[i].TrimStart();
 
-                if (line.StartsWith("CASE "))
+                if (line.StartsWith("SELECTCASE "))
                 {
-                    string caseValue = line[5..].Trim();
-
-                    // 查找下一个CASE或CASEELSE
-                    int nextCaseIndex = -1;
-                    for (int i = currentIndex + 1; i <= endIndex; i++)
+                    nestingLevel++;
+                }
+                else if (line == "ENDSELECT")
+                {
+                    if (nestingLevel > 0)
+                        nestingLevel--;
+                }
+                // 只在最外层处理CASE和CASEELSE
+                else if (nestingLevel == 0)
+                {
+                    if (line.StartsWith("CASE "))
                     {
-                        string nextLine = codeLines[i].TrimStart();
-                        if (nextLine.StartsWith("CASE ") || nextLine == "CASEELSE")
-                        {
-                            nextCaseIndex = i;
-                            break;
-                        }
+                        string caseValue = line[5..].Trim();
+                        casePoints.Add((i, "CASE", caseValue));
                     }
-
-                    if (nextCaseIndex == -1)
-                        nextCaseIndex = endIndex + 1;
-
-                    // 创建CASE子结构
-                    ERACodeSelectCaseSubCase caseSubCase = new(caseValue);
-
-                    // 解析CASE块内容并添加到caseSubCase
-                    ParseCodeBlock(codeLines, currentIndex + 1, nextCaseIndex - 1, caseSubCase);
-
-                    // 添加到SELECTCASE段
-                    selectCaseSegment.Add(caseSubCase);
-
-                    currentIndex = nextCaseIndex;
+                    else if (line == "CASEELSE")
+                    {
+                        casePoints.Add((i, "CASEELSE", null));
+                    }
                 }
-                else if (line == "CASEELSE")
+            }
+
+            // 添加结束点，方便处理最后一个CASE或CASEELSE块
+            casePoints.Add((endIndex + 1, "END", null));
+
+            // 如果没有任何CASE或CASEELSE，直接返回
+            if (casePoints.Count <= 1)
+            {
+                return;
+            }
+
+            // 依次处理每个CASE和CASEELSE块
+            for (int i = 0; i < casePoints.Count - 1; i++)
+            {
+                var currentPoint = casePoints[i];
+                var nextPoint = casePoints[i + 1];
+
+                // 确定当前块的范围
+                int blockStart = currentPoint.index + 1;
+                int blockEnd = nextPoint.index - 1;
+
+                // 确保范围有效
+                if (blockStart <= blockEnd)
                 {
-                    // 创建CASEELSE子结构
-                    ERACodeSelectCaseSubCase caseElseSubCase = new(null);
-
-                    // 解析CASEELSE块内容并添加到caseElseSubCase
-                    ParseCodeBlock(codeLines, currentIndex + 1, endIndex, caseElseSubCase);
-
-                    // 添加到SELECTCASE段
-                    selectCaseSegment.Add(caseElseSubCase);
-
-                    break; // CASEELSE是最后一个块
-                }
-                else
-                {
-                    // 不是CASE或CASEELSE，可能是语法错误，跳过
-                    currentIndex++;
+                    if (currentPoint.type == "CASE")
+                    {
+                        // 处理CASE块
+                        ERACodeSelectCaseSubCase caseSubCase = new(currentPoint.value);
+                        
+                        // 解析块内容
+                        ParseCodeBlock(codeLines, blockStart, blockEnd, caseSubCase);
+                        
+                        // 添加到SELECTCASE段
+                        selectCaseSegment.Add(caseSubCase);
+                    }
+                    else if (currentPoint.type == "CASEELSE")
+                    {
+                        // 处理CASEELSE块
+                        ERACodeSelectCaseSubCase caseElseSubCase = new(null);
+                        
+                        // 解析块内容
+                        ParseCodeBlock(codeLines, blockStart, blockEnd, caseElseSubCase);
+                        
+                        // 添加到SELECTCASE段
+                        selectCaseSegment.Add(caseElseSubCase);
+                    }
                 }
             }
         }
 
+        // 查找下一个同级别的CASE、CASEELSE或ENDSELECT - 保留以便向后兼容
+        private static int FindNextCaseOrEnd(List<string> codeLines, int startIndex, int endIndex)
+        {
+            int nestingLevel = 0;
+
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                string line = codeLines[i].TrimStart();
+
+                if (line.StartsWith("SELECTCASE "))
+                {
+                    nestingLevel++;
+                }
+                else if (line == "ENDSELECT")
+                {
+                    if (nestingLevel == 0)
+                        return i; // 找到同级别的ENDSELECT
+                    nestingLevel--;
+                }
+                else if (nestingLevel == 0 && (line.StartsWith("CASE ") || line == "CASEELSE"))
+                {
+                    return i; // 找到同级别的CASE或CASEELSE
+                }
+            }
+
+            return -1; // 没有找到
+        }
+
+        // 查找同级别的ENDSELECT - 保留以便向后兼容
+        private static int FindNextEndSelectAtSameLevel(List<string> codeLines, int startIndex, int endIndex)
+        {
+            int nestingLevel = 0;
+
+            for (int i = startIndex; i <= endIndex; i++)
+            {
+                string line = codeLines[i].TrimStart();
+
+                if (line.StartsWith("SELECTCASE "))
+                {
+                    nestingLevel++;
+                }
+                else if (line == "ENDSELECT")
+                {
+                    if (nestingLevel == 0)
+                        return i; // 找到同级别的ENDSELECT
+                    nestingLevel--;
+                }
+            }
+
+            return -1; // 没有找到
+        }
         private static int FindMatchingEndKeyword(List<string> codeLines, int startIndex, int endIndex, string startKeyword, string endKeyword)
         {
             int nestingLevel = 1; // 已经遇到了一个开始关键字
@@ -437,13 +513,35 @@ namespace EOProcesser
             {
                 string line = codeLines[i].TrimStart();
 
+                // 特殊情况处理：DO-LOOP结构
+                if (startKeyword == "DO" && (line == "LOOP" || line.StartsWith("LOOP ")))
+                {
+                    nestingLevel--;
+                    if (nestingLevel == 0)
+                    {
+                        return i; // 找到匹配的LOOP
+                    }
+                    continue;
+                }
+
+                // 特殊情况：SELECTCASE结构中的CASEELSE
+                if (startKeyword == "SELECTCASE" && line == "CASEELSE")
+                {
+                    // CASEELSE不影响嵌套级别，跳过不处理
+                    continue;
+                }
+
                 // 检查是否是开始关键字
-                if (line.StartsWith(startKeyword + " ") || line == startKeyword)
+                if (line == startKeyword || 
+                    line.StartsWith(startKeyword + " ") || 
+                    Regex.IsMatch(line, $"^{Regex.Escape(startKeyword)}\\b"))
                 {
                     nestingLevel++;
                 }
                 // 检查是否是结束关键字
-                else if (line.StartsWith(endKeyword + " ") || line == endKeyword)
+                else if (line == endKeyword || 
+                        line.StartsWith(endKeyword + " ") || 
+                        Regex.IsMatch(line, $"^{Regex.Escape(endKeyword)}\\b"))
                 {
                     nestingLevel--;
                     if (nestingLevel == 0)
@@ -451,17 +549,11 @@ namespace EOProcesser
                         return i; // 找到匹配的结束关键字
                     }
                 }
-                // 特殊情况：LOOP可能包含条件
-                else if (startKeyword == "DO" && line.StartsWith("LOOP"))
-                {
-                    nestingLevel--;
-                    if (nestingLevel == 0)
-                    {
-                        return i;
-                    }
-                }
             }
 
+            // 添加调试信息
+            Console.WriteLine($"未找到匹配的结束关键字: {startKeyword} -> {endKeyword}, 搜索范围: {startIndex}-{endIndex}");
+            
             return -1; // 没有找到匹配的结束关键字
         }
     }
