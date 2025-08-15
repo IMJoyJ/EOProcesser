@@ -30,6 +30,10 @@
         {
             components = new System.ComponentModel.Container();
             scContainer = new SplitContainer();
+            btnNodeMoveDown = new Button();
+            btnNodeMoveUp = new Button();
+            btnRemoveNode = new Button();
+            btnAddNewNode = new Button();
             btnSaveFile = new Button();
             treeCodeTree = new TreeView();
             btnSave = new Button();
@@ -41,10 +45,6 @@
             ChildAddCodeToolStripMenuItem = new ToolStripMenuItem();
             EditCodeToolStripMenuItem = new ToolStripMenuItem();
             CodeDeleteToolStripMenuItem = new ToolStripMenuItem();
-            btnAddNewNode = new Button();
-            btnRemoveNode = new Button();
-            btnNodeMoveUp = new Button();
-            btnNodeMoveDown = new Button();
             ((System.ComponentModel.ISupportInitialize)scContainer).BeginInit();
             scContainer.Panel1.SuspendLayout();
             scContainer.Panel2.SuspendLayout();
@@ -76,10 +76,54 @@
             scContainer.SplitterDistance = 211;
             scContainer.TabIndex = 0;
             // 
+            // btnNodeMoveDown
+            // 
+            btnNodeMoveDown.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnNodeMoveDown.Location = new Point(603, 179);
+            btnNodeMoveDown.Name = "btnNodeMoveDown";
+            btnNodeMoveDown.Size = new Size(27, 29);
+            btnNodeMoveDown.TabIndex = 6;
+            btnNodeMoveDown.Text = "↓";
+            btnNodeMoveDown.UseVisualStyleBackColor = true;
+            btnNodeMoveDown.Click += btnNodeMoveDown_Click;
+            // 
+            // btnNodeMoveUp
+            // 
+            btnNodeMoveUp.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnNodeMoveUp.Location = new Point(570, 179);
+            btnNodeMoveUp.Name = "btnNodeMoveUp";
+            btnNodeMoveUp.Size = new Size(27, 29);
+            btnNodeMoveUp.TabIndex = 5;
+            btnNodeMoveUp.Text = "↑";
+            btnNodeMoveUp.UseVisualStyleBackColor = true;
+            btnNodeMoveUp.Click += btnNodeMoveUp_Click;
+            // 
+            // btnRemoveNode
+            // 
+            btnRemoveNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnRemoveNode.Location = new Point(537, 179);
+            btnRemoveNode.Name = "btnRemoveNode";
+            btnRemoveNode.Size = new Size(27, 29);
+            btnRemoveNode.TabIndex = 4;
+            btnRemoveNode.Text = "-";
+            btnRemoveNode.UseVisualStyleBackColor = true;
+            btnRemoveNode.Click += btnRemoveNode_Click;
+            // 
+            // btnAddNewNode
+            // 
+            btnAddNewNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnAddNewNode.Location = new Point(504, 179);
+            btnAddNewNode.Name = "btnAddNewNode";
+            btnAddNewNode.Size = new Size(27, 29);
+            btnAddNewNode.TabIndex = 3;
+            btnAddNewNode.Text = "+";
+            btnAddNewNode.UseVisualStyleBackColor = true;
+            btnAddNewNode.Click += btnAddNewNode_Click;
+            // 
             // btnSaveFile
             // 
             btnSaveFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnSaveFile.Location = new Point(502, 179);
+            btnSaveFile.Location = new Point(502, 144);
             btnSaveFile.Name = "btnSaveFile";
             btnSaveFile.Size = new Size(128, 29);
             btnSaveFile.TabIndex = 2;
@@ -168,50 +212,6 @@
             CodeDeleteToolStripMenuItem.Size = new Size(153, 24);
             CodeDeleteToolStripMenuItem.Text = "削除";
             CodeDeleteToolStripMenuItem.Click += CodeDeleteToolStripMenuItem_Click;
-            // 
-            // btnAddNewNode
-            // 
-            btnAddNewNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnAddNewNode.Location = new Point(502, 144);
-            btnAddNewNode.Name = "btnAddNewNode";
-            btnAddNewNode.Size = new Size(27, 29);
-            btnAddNewNode.TabIndex = 3;
-            btnAddNewNode.Text = "+";
-            btnAddNewNode.UseVisualStyleBackColor = true;
-            btnAddNewNode.Click += btnAddNewNode_Click;
-            // 
-            // btnRemoveNode
-            // 
-            btnRemoveNode.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnRemoveNode.Location = new Point(535, 144);
-            btnRemoveNode.Name = "btnRemoveNode";
-            btnRemoveNode.Size = new Size(27, 29);
-            btnRemoveNode.TabIndex = 4;
-            btnRemoveNode.Text = "-";
-            btnRemoveNode.UseVisualStyleBackColor = true;
-            btnRemoveNode.Click += btnRemoveNode_Click;
-            // 
-            // btnNodeMoveUp
-            // 
-            btnNodeMoveUp.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnNodeMoveUp.Location = new Point(568, 144);
-            btnNodeMoveUp.Name = "btnNodeMoveUp";
-            btnNodeMoveUp.Size = new Size(27, 29);
-            btnNodeMoveUp.TabIndex = 5;
-            btnNodeMoveUp.Text = "↑";
-            btnNodeMoveUp.UseVisualStyleBackColor = true;
-            btnNodeMoveUp.Click += btnNodeMoveUp_Click;
-            // 
-            // btnNodeMoveDown
-            // 
-            btnNodeMoveDown.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnNodeMoveDown.Location = new Point(601, 144);
-            btnNodeMoveDown.Name = "btnNodeMoveDown";
-            btnNodeMoveDown.Size = new Size(27, 29);
-            btnNodeMoveDown.TabIndex = 6;
-            btnNodeMoveDown.Text = "↓";
-            btnNodeMoveDown.UseVisualStyleBackColor = true;
-            btnNodeMoveDown.Click += btnNodeMoveDown_Click;
             // 
             // EffectEditor
             // 
