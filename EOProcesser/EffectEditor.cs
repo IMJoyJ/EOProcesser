@@ -16,6 +16,13 @@ namespace EOProcesser
         {
             InitializeComponent();
         }
+        public void ClearAll()
+        {
+            TextHasChanged = false;
+            treeCodeTree.Nodes.Clear();
+            txtCode.Text = "";
+            CurrentFile = null;
+        }
         public void LoadCode(ERACode code)
         {
             treeCodeTree.Nodes.Clear();
@@ -203,7 +210,8 @@ namespace EOProcesser
                 {
                     if (!string.IsNullOrWhiteSpace(lines[i]))
                     {
-                        lines[i] = lines[i].Substring(Math.Min(minTabCount, lines[i].TakeWhile(c => c == '\t').Count()));
+                        lines[i] = lines[i][
+                            Math.Min(minTabCount, lines[i].TakeWhile(c => c == '\t').Count())..];
                     }
                 }
                 
@@ -261,11 +269,7 @@ namespace EOProcesser
             if (node.Tag is ERACode eraCode)
             {
                 // 获取当前节点的所有子节点列表
-                List<TreeNode> childNodes = new();
-                foreach (TreeNode childNode in node.Nodes)
-                {
-                    childNodes.Add(childNode);
-                }
+                List<TreeNode> childNodes = [.. node.Nodes.Cast<TreeNode>()];
 
                 // 调用ERACode的RefreshFromChildTreeNodes方法更新Tag
                 if (node.Tag is ERABlockSegment block)
