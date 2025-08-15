@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace EOProcesser
 {
@@ -167,11 +168,16 @@ namespace EOProcesser
             Initialize();
         }
 
+        public string GetFuncActualName(string funcName)
+        {
+            return funcName.Split(['(', ' ', ','])[0];
+        }
+
         public ERACodeFuncSegment? GetFunc(string funcName)
         {
             foreach (var func in Funcs)
             {
-                string actualFuncName = func.FuncName.Split(['(', ' ', ','])[0];
+                string actualFuncName = GetFuncActualName(func.FuncName);
                 if (actualFuncName == funcName)
                 {
                     return func;
@@ -203,6 +209,32 @@ namespace EOProcesser
         public ERACodeFuncSegment? GetCardCanFunc() => CardScript.GetFunc($"CARDCAN_{Id}");
         public ERACodeFuncSegment? GetCardAAFunc() => CardScript.GetFunc($"CARDSUMMON_AA_{Id}");
         public ERACodeFuncSegment? GetCardEffectFunc() => CardScript.GetFunc($"CARDEFFECT_{Id}");
+        public List<ERACodeFuncSegment> GetExtraFuncs()
+        {
+            List<ERACodeFuncSegment> result = new();
+            foreach (var func in CardScript.Funcs)
+            {
+                string actualFuncName = CardScript.GetFuncActualName(func.FuncName);
+                
+                // 使用正则表达式确保ID是全字匹配的
+                // 检查函数名是否包含完整的卡片ID（作为一个完整的单词）
+                string idPattern = $@"(^|[^0-9])({Id})([^0-9]|$)";
+                if (Regex.IsMatch(actualFuncName, idPattern))
+                {
+                    // 跳过包含该卡片ID的函数，这些函数应该已经由特定的getter处理
+                    continue;
+                }
+                
+                // 检查函数名是否不包含任何数字
+                bool hasDigits = actualFuncName.Any(char.IsDigit);
+                
+                if (!hasDigits)
+                {
+                    result.Add(func);
+                }
+            }
+            return result;
+        }
         public List<string> GetCardCategory()
         {
             var func = GetCardNameFunc();
