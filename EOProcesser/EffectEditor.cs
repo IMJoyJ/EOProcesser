@@ -26,7 +26,9 @@ namespace EOProcesser
             var ml = ERACodeAnalyzer.AnalyzeCode(str);
             treeCodeTree.Nodes.AddRange([.. ml.GetTreeNodes()]);
             txtCode.Text = str;
+            txtCode.Enabled = false;
             TextHasChanged = false;
+            btnSaveFile.Visible = (CurrentFile != null);
         }
         public string? CurrentFile = null;
         public void LoadCodeFromFile(string file)
@@ -195,6 +197,7 @@ namespace EOProcesser
             }
             
             txtCode.Text = code;
+            txtCode.Enabled = true;
             TextHasChanged = false;
         }
 
