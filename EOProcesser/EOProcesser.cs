@@ -225,13 +225,7 @@ namespace EOProcesser
                     {
                         return;
                     }
-                    tvCode.Nodes.Clear();
-                    var codes = ERACodeAnalyzer.AnalyzeCode(File.ReadAllLines(str));
-                    foreach (var code in codes)
-                    {
-                        tvCode.Nodes.AddRange([.. code.GetTreeNodes()]);
-                    }
-                    txtCode.Text = codes.ToString();
+                    eeCodeView.LoadCodeFromFile(str);
                 }
                 catch
 #if DEBUG
@@ -464,6 +458,7 @@ namespace EOProcesser
         }
         private void listCardScriptCard_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            silent = true;
             if (listCardScriptCard.SelectedItem is ERAOCGCard card)
             {
                 if (MessageBox.Show("保存されてないデータが失われる。確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -479,12 +474,25 @@ namespace EOProcesser
                         var sel = (func.FirstOrDefault((f) => f is ERACodeSelectCase)
                             as ERACodeSelectCase)
                             ?? new ERACodeSelectCase("参照先");
-                        foreach(ERACodeSelectCaseSubCase caseVal in sel.Cast<ERACodeSelectCaseSubCase>())
+                        foreach (ERACodeSelectCaseSubCase caseVal in sel.Cast<ERACodeSelectCaseSubCase>())
                         {
                             listCardInfo.Items.Add(caseVal);
                         }
                     }
                 }
+            }
+            silent = false;
+        }
+
+        bool silent = true;
+        private void radioCMStandardEffect_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+
+            }
+            catch(Exception ex)
+            {
             }
         }
     }
