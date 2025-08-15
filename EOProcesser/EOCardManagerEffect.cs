@@ -12,7 +12,7 @@ namespace EOProcesser
     {
         public static EOCardManagerCardEffect Parse(ERAOCGCard card)
         {
-            EOCardManagerCardEffect result = new();
+            EOCardManagerCardEffect result = [];
             result.Id = card.Id.ToString();
 
             // 1. 处理说明文本，根据①②③④等符号分割效果
@@ -105,9 +105,9 @@ namespace EOProcesser
                     currentEffectNo,
                     currentDescriptionLines,
                     null,
-                    new List<ERACode>(),
-                    new List<ERACode>(),
-                    new List<ERACodeFuncSegment>()
+                    [],
+                    [],
+                    []
                 ));
             }
             
@@ -124,10 +124,7 @@ namespace EOProcesser
                 effects.Add(new EOCardManagerEffect(
                     null, // 自动编号
                     printLines,
-                    null,
-                    new List<ERACode>(),
-                    new List<ERACode>(),
-                    new List<ERACodeFuncSegment>()
+                    null,[],[],[]
                 ));
             }
 
@@ -164,6 +161,14 @@ namespace EOProcesser
             }
             return result;
         }
+        public string GetAllEffectFuncContent()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(GetExplanationFuncContent());
+            sb.Append(GetCanFuncContent());
+            sb.Append(GetEffectFuncContent());
+            return sb.ToString();
+        }
 
         private static void ProcessFunctionSegment(ERACodeFuncSegment func, List<EOCardManagerEffect> effects, List<ERACode> prefixCodes, bool isCan)
         {
@@ -180,12 +185,7 @@ namespace EOProcesser
             {
                 foreach (var code in func)
                 {
-                    // 跳过函数声明和参数定义行
-                    if (!(code is ERACodeMultiLines) || 
-                        !code.ToString().StartsWith("#"))
-                    {
-                        prefixCodes.Add(code);
-                    }
+                    prefixCodes.Add(code);
                 }
                 return;
             }
@@ -200,8 +200,7 @@ namespace EOProcesser
                     break;
                 }
                 
-                if (!foundIf && !(code is ERACodeMultiLines) && 
-                    !code.ToString().StartsWith("#"))
+                if (!foundIf)
                 {
                     prefixCodes.Add(code);
                 }
@@ -220,11 +219,11 @@ namespace EOProcesser
                 // 需要创建新的效果条目
                 effects.Add(new EOCardManagerEffect(
                     "", // 不编号且不计入编号
-                    new List<ERACode>(),
+                    [],
                     null,
-                    new List<ERACode>(),
-                    new List<ERACode>(),
-                    new List<ERACodeFuncSegment>()
+                    [],
+                    [],
+                    []
                 ));
                 effectCount++;
             }
@@ -233,14 +232,14 @@ namespace EOProcesser
             effects[0].Condition = ifSegment.Condition;
             if (isCan)
             {
-                foreach (var code in ifSegment)
+                foreach (var code in ifSegment.codes)
                 {
                     effects[0].CanFuncs.Add(code);
                 }
             }
             else
             {
-                foreach (var code in ifSegment)
+                foreach (var code in ifSegment.codes)
                 {
                     effects[0].EffectFuncs.Add(code);
                 }
@@ -280,18 +279,13 @@ namespace EOProcesser
 
         public ERACodeMultiLines GetExplanationFuncContent()
         {
-            ERACodeMultiLines lines = [
-                new ERACodeDimLine("#DIM DYNAMIC 種類"),
-                new ERACodeGenericLine("")];
+            ERACodeMultiLines lines = [];
             int index = -1;
             if (IsRogue)
             {
                 lines.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
             }
-            foreach(ERACode m in PrefixDescription)
-            {
-                lines.Add(m);
-            }
+            lines.AddRange([..PrefixDescription]);
             foreach(EOCardManagerEffect effect in effects)
             {
                 string? no = "";
@@ -447,7 +441,14 @@ namespace EOProcesser
             // 创建父节点，使用效果编号或描述作为显示文本
             string displayText = EffectNo != null ? $"效果{EffectNo}" : "效果(自動数え)";
             TreeNode rootNode = new(displayText) { Tag = this };
-            
+
+            // 添加条件子节点
+            TreeNode conditionNode = new($"条件: {Condition ?? "(無し)"}")
+            {
+                Tag = Condition
+            };
+            rootNode.Nodes.Add(conditionNode);
+
             // 添加效果描述子节点
             TreeNode descNode = new("効果文") { Tag = Descriptions };
             foreach (var desc in Descriptions)
@@ -455,13 +456,6 @@ namespace EOProcesser
                 descNode.Nodes.Add(new TreeNode(desc.ToString()) { Tag = desc });
             }
             rootNode.Nodes.Add(descNode);
-            
-            // 添加条件子节点
-            TreeNode conditionNode = new($"条件: {Condition ?? "(無し)"}")
-            {
-                Tag = Condition
-            };
-            rootNode.Nodes.Add(conditionNode);
             
             // 添加Can函数子节点
             TreeNode canFuncNode = new("効果可用性") { Tag = CanFuncs };
