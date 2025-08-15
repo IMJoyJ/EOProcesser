@@ -16,6 +16,21 @@ namespace EOProcesser
         {
             InitializeComponent();
         }
+        public void LoadCode(ERACode code)
+        {
+            treeCodeTree.Nodes.Clear();
+            treeCodeTree.Nodes.AddRange([.. code.GetTreeNodes()]);
+            txtCode.Text = code.ToString();
+            txtCode.Enabled = false;
+            TextHasChanged = false;
+            CurrentFile = null;
+            btnSaveFile.Visible = false;
+            if (treeCodeTree.Nodes.Count > 0)
+            {
+                treeCodeTree.SelectedNode = treeCodeTree.Nodes[0];
+                treeCodeTree_NodeMouseDoubleClick(this, new TreeNodeMouseClickEventArgs(treeCodeTree.SelectedNode, MouseButtons.Left, 1, 0, 0));
+            }
+        }
         public void LoadCode(string str, bool isFile = false)
         {
             if (!isFile)
@@ -246,7 +261,7 @@ namespace EOProcesser
             if (node.Tag is ERACode eraCode)
             {
                 // 获取当前节点的所有子节点列表
-                List<TreeNode> childNodes = new List<TreeNode>();
+                List<TreeNode> childNodes = new();
                 foreach (TreeNode childNode in node.Nodes)
                 {
                     childNodes.Add(childNode);
