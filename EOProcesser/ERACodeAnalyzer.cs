@@ -297,7 +297,7 @@ namespace EOProcesser
         private static void ParseIfBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeIfSegment ifSegment)
         {
             // 重写的方法，正确处理嵌套的IF结构
-            List<(int index, string type, string? condition)> controlPoints = new();
+            List<(int index, string type, string? condition)> controlPoints = [];
 
             // 首先找出所有同级的ELSEIF和ELSE控制点
             int nestLevel = 0;
@@ -341,7 +341,7 @@ namespace EOProcesser
                 int blockEnd = point.index - 1;
 
                 // 创建并解析当前块
-                ERACodeMultiLines currentBlock = new();
+                ERACodeMultiLines currentBlock = [];
                 ParseCodeBlock(codeLines, currentStart, blockEnd, currentBlock);
 
                 if (i == 0)
@@ -374,7 +374,7 @@ namespace EOProcesser
         private static void ParseSelectCaseBlock(List<string> codeLines, int startIndex, int endIndex, ERACodeSelectCase selectCaseSegment)
         {
             // 改进后的方法，正确处理SELECTCASE和CASEELSE
-            List<(int index, string type, string? value)> casePoints = new();
+            List<(int index, string type, string? value)> casePoints = [];
             
             // 首先找出同级别的所有CASE和CASEELSE点
             int nestingLevel = 0;

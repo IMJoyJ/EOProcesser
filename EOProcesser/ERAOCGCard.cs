@@ -42,7 +42,6 @@ namespace EOProcesser
                 		RETURN 0
                 	CASE "守備力"
                 		RETURN 0
-                	;牝性/雄性があるよ
                 	CASE "性別"
                 		RETURN 牝性
                 ENDSELECT
@@ -211,7 +210,7 @@ namespace EOProcesser
         public ERACodeFuncSegment? GetCardEffectFunc() => CardScript.GetFunc($"CARDEFFECT_{Id}");
         public List<ERACodeFuncSegment> GetExtraFuncs()
         {
-            List<ERACodeFuncSegment> result = new();
+            List<ERACodeFuncSegment> result = [];
             foreach (var func in CardScript.Funcs)
             {
                 string actualFuncName = CardScript.GetFuncActualName(func.FuncName);

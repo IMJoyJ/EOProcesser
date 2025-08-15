@@ -309,18 +309,19 @@ namespace EOProcesser
         // 存储所有解析函数的列表
         private static readonly Lazy<List<TryParseDelegate>> _parsersLazy = new(() =>
         {
-            var parsers = new List<TryParseDelegate>();
-            
-            // 按特定顺序添加解析函数，确保更具体的模式先匹配
-            parsers.Add(new ERACodeCommentLine(string.Empty).TryParse);
-            parsers.Add(new ERACodePrintLine(string.Empty).TryParse);
-            parsers.Add(new ERACodeDimLine(string.Empty).TryParse);
-            parsers.Add(new ERACodeDimsLine(string.Empty).TryParse);
-            parsers.Add(new ERACodeGotoLine(string.Empty).TryParse);
-            parsers.Add(new ERACodeLabelLine(string.Empty).TryParse);
-            
-            // 通用行解析函数放在最后
-            parsers.Add(new ERACodeGenericLine(string.Empty).TryParse);
+            var parsers = new List<TryParseDelegate>
+            {
+                // 按特定顺序添加解析函数，确保更具体的模式先匹配
+                new ERACodeCommentLine(string.Empty).TryParse,
+                new ERACodePrintLine(string.Empty).TryParse,
+                new ERACodeDimLine(string.Empty).TryParse,
+                new ERACodeDimsLine(string.Empty).TryParse,
+                new ERACodeGotoLine(string.Empty).TryParse,
+                new ERACodeLabelLine(string.Empty).TryParse,
+
+                // 通用行解析函数放在最后
+                new ERACodeGenericLine(string.Empty).TryParse
+            };
             
             return parsers;
         });
