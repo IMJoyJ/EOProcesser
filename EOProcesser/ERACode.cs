@@ -254,7 +254,7 @@ namespace EOProcesser
             var caseSubCodes = codes.OfType<ERACodeSelectCaseSubCase>().ToList();
             foreach (var subCase in caseSubCodes)
             {
-                if (subCase.CaseValue == c)
+                if (subCase.CaseCondition == c)
                 {
                     return subCase.GetValue();
                 }
@@ -266,7 +266,7 @@ namespace EOProcesser
             var caseSubCodes = codes.OfType<ERACodeSelectCaseSubCase>().ToList();
             foreach (var subCase in caseSubCodes)
             {
-                if (subCase.CaseValue == c)
+                if (subCase.CaseCondition == c)
                 {
                     return subCase.GetValueList();
                 }
@@ -312,12 +312,12 @@ namespace EOProcesser
 
     public partial class ERACodeSelectCaseSubCase : ERABlockSegment
     {
-        public string? CaseValue { get; private set; }
+        public string? CaseCondition { get; private set; }
 
-        public ERACodeSelectCaseSubCase(string? caseValue)
-            : base(caseValue == null ? $"CASEELSE" : $"CASE {caseValue}")
+        public ERACodeSelectCaseSubCase(string? caseCond)
+            : base(caseCond == null ? $"CASEELSE" : $"CASE {caseCond}")
         {
-            CaseValue = caseValue;
+            CaseCondition = caseCond;
         }
 
         public string? GetValue()
@@ -366,7 +366,7 @@ namespace EOProcesser
         protected override string GetNodeText()
         {
             var val = GetValue();
-            string result = $"{CaseValue ?? "CASEELSE"}";
+            string result = $"{CaseCondition ?? "CASEELSE"}";
             if (val != null)
             {
                 result += $" ({val})";
@@ -377,7 +377,7 @@ namespace EOProcesser
         public ERACodeSelectCaseSubCase(string? caseValue, ERACodeMultiLines codeSegment)
             : base(caseValue == null ? $"CASEELSE" : $"CASE {caseValue}")
         {
-            CaseValue = caseValue;
+            CaseCondition = caseValue;
 
             foreach (var code in codeSegment)
             {
