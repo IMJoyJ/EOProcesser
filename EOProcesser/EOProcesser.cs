@@ -430,7 +430,7 @@ namespace EOProcesser
                 SearchNodes(node, searchText);
             }
         }
-
+        string? CurrentFile = null;
         private void treeCards_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node.Tag is ERAOCGCardScript script)
@@ -442,6 +442,7 @@ namespace EOProcesser
                     {
                         listCardScriptCard.Items.Add(card);
                     }
+                    CurrentFile = script.ScriptFile;
                 }
             }
             else if (e.Node.Tag is ERAOCGCard card)
@@ -453,9 +454,13 @@ namespace EOProcesser
                     {
                         listCardScriptCard.Items.Add(c);
                     }
+                    CurrentFile = card.CardScript.ScriptFile;
+                    tabCardEditPanel.SelectedIndex = 0;
                 }
             }
         }
+
+        ERAOCGCard? CurrentCard = null;
         private void listCardScriptCard_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             silent = true;
@@ -476,23 +481,148 @@ namespace EOProcesser
                             ?? new ERACodeSelectCase("参照先");
                         foreach (ERACodeSelectCaseSubCase caseVal in sel.Cast<ERACodeSelectCaseSubCase>())
                         {
-                            listCardInfo.Items.Add(caseVal);
+                            listCardInfo.Items.Add(new ERACodeSelectCaseSubCaseListItem(caseVal));
                         }
                     }
+                    func = card.GetCardEffectFunc();
+                    if (func != null)
+                    {
+                        eeCardEffect.LoadCode(func);
+                    }
+                    func = card.GetCardCanFunc();
+                    if (func != null)
+                    {
+                        eeCardCan.LoadCode(func);
+                    }
+                    func = card.GetCardExplanationFunc();
+                    if (func != null)
+                    {
+                        eeCardExplanation.LoadCode(func);
+                    }
+                    func = card.GetCardAAFunc();
+                    if (func != null)
+                    {
+                        eeCardSummonAA.LoadCode(func);
+                    }
+
+                    CurrentCard = card;
+                    tabCardEditPanel.SelectedIndex = 1;
                 }
             }
             silent = false;
         }
 
+        class ERACodeSelectCaseSubCaseListItem
+        {
+            public ERACodeSelectCaseSubCase CaseValue;
+            public ERACodeSelectCaseSubCaseListItem(ERACodeSelectCaseSubCase caseValue)
+            {
+                CaseValue = caseValue;
+            }
+            public override string ToString()
+            {
+                return $"{CaseValue.CaseCondition?.TrimStart('"').TrimEnd('"')} : {CaseValue.GetValue()}";
+            }
+        }
+
         bool silent = true;
+        bool stopCheckChangeProcess = false;
         private void radioCMStandardEffect_CheckedChanged(object sender, EventArgs e)
         {
+            if (stopCheckChangeProcess)
+            {
+                return;
+            }
+            if (!radioCMStandardEffect.Checked)
+            {
+                return;
+            }
             try
             {
-
+                if (CurrentFile == null || CurrentCard == null)
+                {
+                    return;
+                }
+                treeCardEffectList.Nodes.Clear();
+                EOCardManagerCardEffect effect = EOCardManagerCardEffect.Parse(CurrentCard);
+                foreach (var eff in effect)
+                {
+                    treeCardEffectList.Nodes.AddRange(eff.GetTreeNodes());
+                }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                if (!silent)
+                {
+                    MessageBox.Show("非標準カードなので変換できません：" + ex.ToString(),
+                        "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    stopCheckChangeProcess = true;
+                    // Reset to custom standard effect
+                    radioCMStandardEffect.Checked = false;
+                    radioCustomStandardEffect.Checked = true;
+                    stopCheckChangeProcess = false;
+                }
+            }
+        }
+        private void treeCardEffectList_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node.Tag == null)
+                return;
+                
+            if (e.Node.Tag is ERACode code)
+            {
+                // 如果节点包含ERACode，将其加载到编辑器
+                eeCardManagerScriptEditor.LoadCode(code);
+            }
+            else if (e.Node.Tag is string strValue)
+            {
+                // 如果是字符串属性（如Condition），提示用户输入
+                string propertyName = e.Node.Text;
+                
+                // 从节点文本中提取属性名称（例如从"条件: xxx"提取"条件"）
+                if (propertyName.Contains(':'))
+                {
+                    propertyName = propertyName.Substring(0, propertyName.IndexOf(':'));
+                }
+                
+                // 显示输入对话框
+                string prompt = $"请输入新的{propertyName}值:";
+                string title = $"修改{propertyName}";
+                
+                string? newValue = Microsoft.VisualBasic.Interaction.InputBox(prompt, title, strValue);
+                
+                // 如果用户输入了新值（不为空且不同于原值）
+                if (!string.IsNullOrEmpty(newValue) && newValue != strValue)
+                {
+                    // 更新节点显示的文本
+                    e.Node.Text = $"{propertyName}: {newValue}";
+                    
+                    // 更新节点的Tag值
+                    e.Node.Tag = newValue;
+                    
+                    // 如果节点是某个效果对象的属性，还需要更新对应的对象
+                    if (e.Node.Parent?.Tag is EOCardManagerEffect effect)
+                    {
+                        // 根据属性名更新对应的效果属性
+                        if (propertyName.Trim() == "条件")
+                        {
+                            effect.Condition = newValue;
+                        }
+                        // 可以根据需要添加其他属性的处理
+                    }
+                }
+            }
+            else if (e.Node.Tag is EOCardManagerEffect effect)
+            {
+                // 如果点击的是效果节点本身，可以编辑效果编号或其他主要属性
+                string? newEffectNo = Microsoft.VisualBasic.Interaction.InputBox(
+                    "新しい効果計数を入力してください:", "効果計数", effect.EffectNo ?? "");
+                    
+                if (!string.IsNullOrEmpty(newEffectNo))
+                {
+                    effect.EffectNo = newEffectNo;
+                    e.Node.Text = $"效果{newEffectNo}";
+                }
             }
         }
     }

@@ -39,7 +39,7 @@
             btnSearch = new Button();
             txtSearchCard = new TextBox();
             treeCards = new TreeView();
-            tabCardEdit = new TabControl();
+            tabCardEditPanel = new TabControl();
             tabCardSelect = new TabPage();
             btnCardScriptMoveDown = new Button();
             btnCardScriptMoveUp = new Button();
@@ -67,18 +67,22 @@
             label1 = new Label();
             txtCardName = new TextBox();
             tabEffect = new TabPage();
-            label6 = new Label();
+            splitContainer1 = new SplitContainer();
             treeCardEffectList = new TreeView();
+            eeCardManagerScriptEditor = new EffectEditor();
+            label6 = new Label();
             radioCustomStandardEffect = new RadioButton();
             radioCMStandardEffect = new RadioButton();
-            tabEffectFunc = new TabPage();
-            tabCardExplanation = new TabPage();
-            btnReset = new Button();
-            btnAddEffectText = new Button();
-            treeEffectFunc = new TreeView();
-            tabEffectCan = new TabPage();
-            tabAA = new TabPage();
             tabExtraFuncs = new TabPage();
+            eeExtraFuncs = new EffectEditor();
+            tabEffectFunc = new TabPage();
+            eeCardEffect = new EffectEditor();
+            tabCardExplanation = new TabPage();
+            eeCardExplanation = new EffectEditor();
+            tabEffectCan = new TabPage();
+            eeCardCan = new EffectEditor();
+            tabAA = new TabPage();
+            eeCardSummonAA = new EffectEditor();
             tabPageCodeView = new TabPage();
             splitContainer = new SplitContainer();
             tvFolderFiles = new TreeView();
@@ -93,11 +97,19 @@
             splitContainerCardEdit.Panel1.SuspendLayout();
             splitContainerCardEdit.Panel2.SuspendLayout();
             splitContainerCardEdit.SuspendLayout();
-            tabCardEdit.SuspendLayout();
+            tabCardEditPanel.SuspendLayout();
             tabCardSelect.SuspendLayout();
             tabCardInfoSettings.SuspendLayout();
             tabEffect.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            tabExtraFuncs.SuspendLayout();
+            tabEffectFunc.SuspendLayout();
             tabCardExplanation.SuspendLayout();
+            tabEffectCan.SuspendLayout();
+            tabAA.SuspendLayout();
             tabPageCodeView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
             splitContainer.Panel1.SuspendLayout();
@@ -177,7 +189,7 @@
             // 
             // splitContainerCardEdit.Panel2
             // 
-            splitContainerCardEdit.Panel2.Controls.Add(tabCardEdit);
+            splitContainerCardEdit.Panel2.Controls.Add(tabCardEditPanel);
             splitContainerCardEdit.Size = new Size(742, 459);
             splitContainerCardEdit.SplitterDistance = 200;
             splitContainerCardEdit.TabIndex = 0;
@@ -210,27 +222,27 @@
             treeCards.Location = new Point(0, 42);
             treeCards.Margin = new Padding(4);
             treeCards.Name = "treeCards";
-            treeCards.Size = new Size(202, 419);
+            treeCards.Size = new Size(196, 411);
             treeCards.TabIndex = 0;
             treeCards.NodeMouseDoubleClick += treeCards_NodeMouseDoubleClick;
             // 
-            // tabCardEdit
+            // tabCardEditPanel
             // 
-            tabCardEdit.Controls.Add(tabCardSelect);
-            tabCardEdit.Controls.Add(tabCardInfoSettings);
-            tabCardEdit.Controls.Add(tabEffect);
-            tabCardEdit.Controls.Add(tabEffectFunc);
-            tabCardEdit.Controls.Add(tabCardExplanation);
-            tabCardEdit.Controls.Add(tabEffectCan);
-            tabCardEdit.Controls.Add(tabAA);
-            tabCardEdit.Controls.Add(tabExtraFuncs);
-            tabCardEdit.Dock = DockStyle.Fill;
-            tabCardEdit.Location = new Point(0, 0);
-            tabCardEdit.Margin = new Padding(1, 2, 1, 2);
-            tabCardEdit.Name = "tabCardEdit";
-            tabCardEdit.SelectedIndex = 0;
-            tabCardEdit.Size = new Size(538, 459);
-            tabCardEdit.TabIndex = 0;
+            tabCardEditPanel.Controls.Add(tabCardSelect);
+            tabCardEditPanel.Controls.Add(tabCardInfoSettings);
+            tabCardEditPanel.Controls.Add(tabEffect);
+            tabCardEditPanel.Controls.Add(tabExtraFuncs);
+            tabCardEditPanel.Controls.Add(tabEffectFunc);
+            tabCardEditPanel.Controls.Add(tabCardExplanation);
+            tabCardEditPanel.Controls.Add(tabEffectCan);
+            tabCardEditPanel.Controls.Add(tabAA);
+            tabCardEditPanel.Dock = DockStyle.Fill;
+            tabCardEditPanel.Location = new Point(0, 0);
+            tabCardEditPanel.Margin = new Padding(1, 2, 1, 2);
+            tabCardEditPanel.Name = "tabCardEditPanel";
+            tabCardEditPanel.SelectedIndex = 0;
+            tabCardEditPanel.Size = new Size(538, 459);
+            tabCardEditPanel.TabIndex = 0;
             // 
             // tabCardSelect
             // 
@@ -527,8 +539,8 @@
             // 
             // tabEffect
             // 
+            tabEffect.Controls.Add(splitContainer1);
             tabEffect.Controls.Add(label6);
-            tabEffect.Controls.Add(treeCardEffectList);
             tabEffect.Controls.Add(radioCustomStandardEffect);
             tabEffect.Controls.Add(radioCMStandardEffect);
             tabEffect.Location = new Point(4, 29);
@@ -539,31 +551,58 @@
             tabEffect.Text = "効果設定";
             tabEffect.UseVisualStyleBackColor = true;
             // 
+            // splitContainer1
+            // 
+            splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainer1.Location = new Point(8, 82);
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(treeCardEffectList);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(eeCardManagerScriptEditor);
+            splitContainer1.Size = new Size(519, 341);
+            splitContainer1.SplitterDistance = 173;
+            splitContainer1.TabIndex = 4;
+            // 
+            // treeCardEffectList
+            // 
+            treeCardEffectList.Dock = DockStyle.Fill;
+            treeCardEffectList.Location = new Point(0, 0);
+            treeCardEffectList.Margin = new Padding(1, 2, 1, 2);
+            treeCardEffectList.Name = "treeCardEffectList";
+            treeCardEffectList.Size = new Size(173, 341);
+            treeCardEffectList.TabIndex = 2;
+            treeCardEffectList.NodeMouseDoubleClick += treeCardEffectList_NodeMouseDoubleClick;
+            // 
+            // eeCardManagerScriptEditor
+            // 
+            eeCardManagerScriptEditor.Dock = DockStyle.Fill;
+            eeCardManagerScriptEditor.Location = new Point(0, 0);
+            eeCardManagerScriptEditor.Name = "eeCardManagerScriptEditor";
+            eeCardManagerScriptEditor.Size = new Size(342, 341);
+            eeCardManagerScriptEditor.TabIndex = 0;
+            // 
             // label6
             // 
             label6.AutoSize = true;
             label6.BackColor = Color.SlateBlue;
             label6.ForeColor = Color.PaleGoldenrod;
-            label6.Location = new Point(8, 36);
+            label6.Location = new Point(8, 39);
             label6.Margin = new Padding(1, 0, 1, 0);
             label6.Name = "label6";
-            label6.Size = new Size(237, 60);
+            label6.Size = new Size(439, 40);
             label6.TabIndex = 3;
-            label6.Text = "※Card Manager標準を使用すると\r\n「効果関数」「効果文」「効果可用性」\r\nタブの設定が無効になります。";
-            // 
-            // treeCardEffectList
-            // 
-            treeCardEffectList.Location = new Point(8, 102);
-            treeCardEffectList.Margin = new Padding(1, 2, 1, 2);
-            treeCardEffectList.Name = "treeCardEffectList";
-            treeCardEffectList.Size = new Size(250, 314);
-            treeCardEffectList.TabIndex = 2;
+            label6.Text = "※Card Manager標準を使用すると、こちらの設定が優先され、\r\n右の「効果文」「効果関数」「効果可用性」タブの設定が無効になります。";
             // 
             // radioCustomStandardEffect
             // 
             radioCustomStandardEffect.AutoSize = true;
             radioCustomStandardEffect.Checked = true;
-            radioCustomStandardEffect.Location = new Point(152, 13);
+            radioCustomStandardEffect.Location = new Point(164, 13);
             radioCustomStandardEffect.Margin = new Padding(1, 2, 1, 2);
             radioCustomStandardEffect.Name = "radioCustomStandardEffect";
             radioCustomStandardEffect.Size = new Size(144, 24);
@@ -584,8 +623,28 @@
             radioCMStandardEffect.UseVisualStyleBackColor = true;
             radioCMStandardEffect.CheckedChanged += radioCMStandardEffect_CheckedChanged;
             // 
+            // tabExtraFuncs
+            // 
+            tabExtraFuncs.Controls.Add(eeExtraFuncs);
+            tabExtraFuncs.Location = new Point(4, 29);
+            tabExtraFuncs.Margin = new Padding(1, 2, 1, 2);
+            tabExtraFuncs.Name = "tabExtraFuncs";
+            tabExtraFuncs.Size = new Size(530, 426);
+            tabExtraFuncs.TabIndex = 5;
+            tabExtraFuncs.Text = "追加関数";
+            tabExtraFuncs.UseVisualStyleBackColor = true;
+            // 
+            // eeExtraFuncs
+            // 
+            eeExtraFuncs.Dock = DockStyle.Fill;
+            eeExtraFuncs.Location = new Point(0, 0);
+            eeExtraFuncs.Name = "eeExtraFuncs";
+            eeExtraFuncs.Size = new Size(530, 426);
+            eeExtraFuncs.TabIndex = 1;
+            // 
             // tabEffectFunc
             // 
+            tabEffectFunc.Controls.Add(eeCardEffect);
             tabEffectFunc.Location = new Point(4, 29);
             tabEffectFunc.Margin = new Padding(1, 2, 1, 2);
             tabEffectFunc.Name = "tabEffectFunc";
@@ -594,11 +653,17 @@
             tabEffectFunc.Text = "効果関数";
             tabEffectFunc.UseVisualStyleBackColor = true;
             // 
+            // eeCardEffect
+            // 
+            eeCardEffect.Dock = DockStyle.Fill;
+            eeCardEffect.Location = new Point(0, 0);
+            eeCardEffect.Name = "eeCardEffect";
+            eeCardEffect.Size = new Size(530, 426);
+            eeCardEffect.TabIndex = 0;
+            // 
             // tabCardExplanation
             // 
-            tabCardExplanation.Controls.Add(btnReset);
-            tabCardExplanation.Controls.Add(btnAddEffectText);
-            tabCardExplanation.Controls.Add(treeEffectFunc);
+            tabCardExplanation.Controls.Add(eeCardExplanation);
             tabCardExplanation.Location = new Point(4, 29);
             tabCardExplanation.Margin = new Padding(1, 2, 1, 2);
             tabCardExplanation.Name = "tabCardExplanation";
@@ -607,37 +672,17 @@
             tabCardExplanation.Text = "効果文";
             tabCardExplanation.UseVisualStyleBackColor = true;
             // 
-            // btnReset
+            // eeCardExplanation
             // 
-            btnReset.Location = new Point(17, 13);
-            btnReset.Margin = new Padding(1, 2, 1, 2);
-            btnReset.Name = "btnReset";
-            btnReset.Size = new Size(130, 49);
-            btnReset.TabIndex = 2;
-            btnReset.Text = "リセット";
-            btnReset.UseVisualStyleBackColor = true;
-            // 
-            // btnAddEffectText
-            // 
-            btnAddEffectText.Location = new Point(17, 65);
-            btnAddEffectText.Margin = new Padding(1, 2, 1, 2);
-            btnAddEffectText.Name = "btnAddEffectText";
-            btnAddEffectText.Size = new Size(130, 49);
-            btnAddEffectText.TabIndex = 1;
-            btnAddEffectText.Text = "効果追加";
-            btnAddEffectText.UseVisualStyleBackColor = true;
-            // 
-            // treeEffectFunc
-            // 
-            treeEffectFunc.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            treeEffectFunc.Location = new Point(161, 2);
-            treeEffectFunc.Margin = new Padding(1, 2, 1, 2);
-            treeEffectFunc.Name = "treeEffectFunc";
-            treeEffectFunc.Size = new Size(375, 442);
-            treeEffectFunc.TabIndex = 0;
+            eeCardExplanation.Dock = DockStyle.Fill;
+            eeCardExplanation.Location = new Point(0, 0);
+            eeCardExplanation.Name = "eeCardExplanation";
+            eeCardExplanation.Size = new Size(530, 426);
+            eeCardExplanation.TabIndex = 1;
             // 
             // tabEffectCan
             // 
+            tabEffectCan.Controls.Add(eeCardCan);
             tabEffectCan.Location = new Point(4, 29);
             tabEffectCan.Margin = new Padding(1, 2, 1, 2);
             tabEffectCan.Name = "tabEffectCan";
@@ -646,8 +691,17 @@
             tabEffectCan.Text = "効果可用性";
             tabEffectCan.UseVisualStyleBackColor = true;
             // 
+            // eeCardCan
+            // 
+            eeCardCan.Dock = DockStyle.Fill;
+            eeCardCan.Location = new Point(0, 0);
+            eeCardCan.Name = "eeCardCan";
+            eeCardCan.Size = new Size(530, 426);
+            eeCardCan.TabIndex = 1;
+            // 
             // tabAA
             // 
+            tabAA.Controls.Add(eeCardSummonAA);
             tabAA.Location = new Point(4, 29);
             tabAA.Margin = new Padding(1, 2, 1, 2);
             tabAA.Name = "tabAA";
@@ -656,15 +710,13 @@
             tabAA.Text = "召喚AA";
             tabAA.UseVisualStyleBackColor = true;
             // 
-            // tabExtraFuncs
+            // eeCardSummonAA
             // 
-            tabExtraFuncs.Location = new Point(4, 29);
-            tabExtraFuncs.Margin = new Padding(1, 2, 1, 2);
-            tabExtraFuncs.Name = "tabExtraFuncs";
-            tabExtraFuncs.Size = new Size(530, 426);
-            tabExtraFuncs.TabIndex = 5;
-            tabExtraFuncs.Text = "追加関数";
-            tabExtraFuncs.UseVisualStyleBackColor = true;
+            eeCardSummonAA.Dock = DockStyle.Fill;
+            eeCardSummonAA.Location = new Point(0, 0);
+            eeCardSummonAA.Name = "eeCardSummonAA";
+            eeCardSummonAA.Size = new Size(530, 426);
+            eeCardSummonAA.TabIndex = 1;
             // 
             // tabPageCodeView
             // 
@@ -757,13 +809,21 @@
             splitContainerCardEdit.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainerCardEdit).EndInit();
             splitContainerCardEdit.ResumeLayout(false);
-            tabCardEdit.ResumeLayout(false);
+            tabCardEditPanel.ResumeLayout(false);
             tabCardSelect.ResumeLayout(false);
             tabCardInfoSettings.ResumeLayout(false);
             tabCardInfoSettings.PerformLayout();
             tabEffect.ResumeLayout(false);
             tabEffect.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            tabExtraFuncs.ResumeLayout(false);
+            tabEffectFunc.ResumeLayout(false);
             tabCardExplanation.ResumeLayout(false);
+            tabEffectCan.ResumeLayout(false);
+            tabAA.ResumeLayout(false);
             tabPageCodeView.ResumeLayout(false);
             splitContainer.Panel1.ResumeLayout(false);
             splitContainer.Panel2.ResumeLayout(false);
@@ -789,7 +849,7 @@
         private TreeView treeCards;
         private System.ComponentModel.BackgroundWorker bwLoadCards;
         private Button btnSearch;
-        private TabControl tabCardEdit;
+        private TabControl tabCardEditPanel;
         private TabPage tabCardInfoSettings;
         private TabPage tabCardInfo;
         private TabPage tabCardExplanation;
@@ -816,9 +876,6 @@
         private Button btnSave;
         private TabPage tabExtraFuncs;
         private TabPage tabEffectCan;
-        private TreeView treeEffectFunc;
-        private Button btnReset;
-        private Button btnAddEffectText;
         private TabPage tabCardSelect;
         private Button btnCardScriptMoveDown;
         private Button btnCardScriptMoveUp;
@@ -833,5 +890,12 @@
         private SplitContainer splitContainer;
         private TreeView tvFolderFiles;
         private EffectEditor eeCodeView;
+        private EffectEditor eeCardEffect;
+        private EffectEditor eeCardExplanation;
+        private EffectEditor eeCardCan;
+        private EffectEditor eeCardSummonAA;
+        private EffectEditor eeExtraFuncs;
+        private SplitContainer splitContainer1;
+        private EffectEditor eeCardManagerScriptEditor;
     }
 }
