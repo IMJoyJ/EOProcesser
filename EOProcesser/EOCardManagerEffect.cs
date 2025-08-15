@@ -276,7 +276,7 @@ namespace EOProcesser
         private readonly List<EOCardManagerEffect> effects = [];
         public string Id = "";
 
-        private const string NumString = "①②③④⑤⑥⑦⑧⑨⑩";
+        private const string NumString = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
 
         public ERACodeMultiLines GetExplanationFuncContent()
         {
