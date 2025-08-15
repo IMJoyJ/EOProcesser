@@ -219,6 +219,18 @@ namespace EOProcesser
 
             return [rootNode];
         }
+
+        public void RefreshFromChildTreeNodes(IEnumerable<TreeNode> nodes)
+        {
+            codes.Clear();
+            foreach (var node in nodes)
+            {
+                if (node.Tag is ERACode code)
+                {
+                    codes.Add(code);
+                }
+            }
+        }
     }
     public class ERACodeFuncSegment : ERABlockSegment
     {
@@ -413,29 +425,38 @@ namespace EOProcesser
             set
             {
                 _indentation = value;
-                foreach (var code in this)
-                {
-                    if (code != StartCode && code != EndCode)
-                    {
-                        code.Indentation = value + 1;
-                    }
-                    else
-                    {
-                        code.Indentation = value;
-                    }
-                }
+                // 为IF区块内的所有代码设置缩进
                 foreach (var code in codes)
                 {
                     code.Indentation = value + 1;
                 }
-                foreach (var code in elseSegments)
+                // 为开始和结束标记设置缩进
+                if (StartCode != null)
                 {
-                    code.Indentation = value;
+                    StartCode.Indentation = value;
+                }
+                if (EndCode != null)
+                {
+                    EndCode.Indentation = value;
+                }
+                // 为所有ELSEIF和ELSE设置缩进
+                foreach (var elseSegment in elseSegments)
+                {
+                    // ELSEIF/ELSE语句本身的缩进与IF相同
+                    elseSegment.Indentation = value;
+                    // ELSEIF/ELSE块内的代码缩进+1
+                    foreach (var code in elseSegment.Codes)
+                    {
+                        code.Indentation = value + 1;
+                    }
                 }
             }
         }
         public string Condition { get; set; }
         private List<ERACodeElseSegment> elseSegments = [];
+
+        // 用于获取elseSegments的属性
+        public IReadOnlyList<ERACodeElseSegment> ElseSegments => elseSegments;
 
         public ERACodeIfSegment(string condition)
             : base($"IF {condition}", "ENDIF")
@@ -515,35 +536,38 @@ namespace EOProcesser
 
         public override List<TreeNode> GetTreeNodes()
         {
+            // 创建IF节点作为父节点
             TreeNode rootNode = new($"IF {Condition}")
             {
                 Tag = this
             };
 
-            // Add all child nodes except StartCode, EndCode, and ElseSegments
-            foreach (var code in this)
+            // 添加IF主体代码作为子节点
+            foreach (var code in codes)
             {
-                if (code != StartCode && code != EndCode && !elseSegments.Contains(code))
+                foreach (var node in code.GetTreeNodes())
                 {
-                    foreach (var node in code.GetTreeNodes())
-                    {
-                        rootNode.Nodes.Add(node);
-                    }
+                    rootNode.Nodes.Add(node);
                 }
             }
 
-            List<TreeNode> result = [rootNode];
+            // 添加所有ELSEIF和ELSE块作为子节点
             foreach (var segment in elseSegments)
             {
-                result.AddRange(segment.GetTreeNodes());
+                // 将ELSEIF/ELSE节点添加到IF节点
+                rootNode.Nodes.AddRange([.. segment.GetTreeNodes()]);
             }
-            return result;
+
+            return [rootNode];
         }
     }
 
     public class ERACodeElseSegment : ERABlockSegment
     {
         public string? Condition { get; private set; }
+        
+        // 添加获取内部代码的属性
+        public IReadOnlyList<ERACode> Codes => codes;
 
         public ERACodeElseSegment(string? condition, IEnumerable<ERACode> codeBlock)
             : base(condition == null ? "ELSE" : $"ELSEIF {condition}", null, codeBlock)
@@ -555,7 +579,28 @@ namespace EOProcesser
         {
             return Condition == null ? "ELSE" : $"ELSEIF {Condition}";
         }
+        
+        // 由于ELSEIF/ELSE现在是IF的子节点，不需要单独生成节点树
+        public override List<TreeNode> GetTreeNodes()
+        {
+            // 这个方法在新的结构中不会被调用，但为了完整性保留
+            TreeNode rootNode = new(GetNodeText())
+            {
+                Tag = this
+            };
+            
+            foreach (var code in codes)
+            {
+                foreach (var node in code.GetTreeNodes())
+                {
+                    rootNode.Nodes.Add(node);
+                }
+            }
+            
+            return [rootNode];
+        }
     }
+
     public class ERACodeForSegment : ERABlockSegment
     {
         public string Counter { get; private set; }
