@@ -201,20 +201,183 @@ namespace EOProcesser
         public ERAOCGCardScript CardScript;
         public string Name;
         public string ShortName;
+        public List<string> Categories = [];
         public int Id = -1;
-        public ERACodeFuncSegment? GetCardNameFunc() => CardScript.GetFunc($"CARDNAME_{Id}");
-        public ERACodeFuncSegment? GetCardInfoFunc() => CardScript.GetFunc($"CARD_{Id}");
-        public ERACodeFuncSegment? GetCardExplanationFunc() => CardScript.GetFunc($"CARD_EXPLANATION_{Id}");
-        public ERACodeFuncSegment? GetCardCanFunc() => CardScript.GetFunc($"CARDCAN_{Id}");
-        public ERACodeFuncSegment? GetCardAAFunc() => CardScript.GetFunc($"CARDSUMMON_AA_{Id}");
-        public ERACodeFuncSegment? GetCardEffectFunc() => CardScript.GetFunc($"CARDEFFECT_{Id}");
+        public ERACodeFuncSegment GetCardNameFunc() =>
+            CardScript.GetFunc($"CARDNAME_{Id}") ?? InitCardNameFunc();
+        public ERACodeFuncSegment? GetCardInfoFunc() =>
+            CardScript.GetFunc($"CARD_{Id}") ?? InitCardInfoFunc();
+        public ERACodeFuncSegment? GetCardExplanationFunc() =>
+            CardScript.GetFunc($"CARD_EXPLANATION_{Id}") ?? InitCardExplanationFunc();
+        public ERACodeFuncSegment? GetCardCanFunc() =>
+            CardScript.GetFunc($"CARDCAN_{Id}") ?? InitCardCanFunc();
+        public ERACodeFuncSegment? GetCardAAFunc() =>
+            CardScript.GetFunc($"CARDSUMMON_AA_{Id}") ?? InitCardAAFunc();
+        public ERACodeFuncSegment? GetCardEffectFunc() =>
+            CardScript.GetFunc($"CARDEFFECT_{Id}") ?? InitCardEffectFunc();
+
+        private ERACodeFuncSegment InitCardNameFunc()
+        {
+            var func = CardScript.GetFunc($"CARDNAME_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARDNAME_{Id},参照先
+                    ;ココで指定カードの名前、略称を返す予定
+                    #DIMS DYNAMIC 参照先
+
+                    VARSET RESULT
+                    VARSET RESULTS
+
+                    SELECTCASE 参照先
+                        CASE "名前"
+                            RESULTS = {Name}
+                        CASE "略称"
+                            RESULTS = {ShortName}
+                        CASE "カテゴリ"
+                    {GetCategoryString()}
+                    ENDSELECT
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+
+        private ERACodeFuncSegment InitCardInfoFunc()
+        {
+            var func = CardScript.GetFunc($"CARD_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARD_{Id}(参照先)
+
+                    #DIMS DYNAMIC 参照先
+                    VARSET RESULT
+                    VARSET RESULTS
+
+                    SELECTCASE 参照先
+                        ;効果モン/通常モン/儀式/融合/シンクロ/エクシーズ/リンク/超次元
+                        CASE "種類"
+                            RETURN 通常モン
+                        ;闇属性/光属性/地属性/水属性/炎属性/風属性
+                        CASE "属性"
+                            RETURN 光属性
+
+                        CASE "種族"
+                            RETURN 幻神獣族
+                        CASE "レベル"
+                            RETURN 0
+                        CASE "攻撃力"
+                            RETURN 0
+                        CASE "守備力"
+                            RETURN 0
+                        CASE "性別"
+                            RETURN 牝性
+                    ENDSELECT
+                    RETURN 0
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+
+        private ERACodeFuncSegment InitCardExplanationFunc()
+        {
+            var func = CardScript.GetFunc($"CARD_EXPLANATION_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARD_EXPLANATION_{Id}(種類)
+                    #DIM DYNAMIC 種類
+
+                    CALL TEXT_DECORATION("DUELIST")
+                    PRINTL 
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+
+        private ERACodeFuncSegment InitCardAAFunc()
+        {
+            var func = CardScript.GetFunc($"CARDSUMMON_AA_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARDSUMMON_AA_{Id}
+                    RETURN 0
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+
+        private ERACodeFuncSegment InitCardCanFunc()
+        {
+            var func = CardScript.GetFunc($"CARDCAN_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARDCAN_{Id}(決闘者,種類,ゾーン,場所)
+                    #DIMS DYNAMIC 決闘者
+                    #DIMS DYNAMIC ゾーン
+                    #DIM DYNAMIC 種類
+                    #DIM DYNAMIC 場所
+
+                    CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,{Id})
+                    SIF RESULT == 1
+                        RETURN 0
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+
+        private ERACodeFuncSegment InitCardEffectFunc()
+        {
+            var func = CardScript.GetFunc($"CARDEFFECT_{Id}");
+            if (func == null)
+            {
+                var lines = ERACodeAnalyzer.AnalyzeCode($"""
+                    @CARDEFFECT_{Id}(決闘者,種類,ゾーン,場所)
+                    #DIMS DYNAMIC 決闘者
+                    #DIMS DYNAMIC 対面者 
+                    #DIMS DYNAMIC ゾーン
+                    #DIM DYNAMIC 種類
+                    #DIM DYNAMIC 場所
+                    #DIM DYNAMIC カウンタ
+                    #DIM DYNAMIC 攻撃力修正
+
+                    CALL 対面者判定(決闘者)
+                    対面者 = %RESULTS%
+                    """);
+                func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
+                CardScript.Funcs.Add(func!);
+            }
+            return func!;
+        }
+        private string GetCategoryString()
+        {
+            int index = 0;
+            var sb = new StringBuilder();
+            foreach (var line in Categories)
+            {
+                sb.Append($"\t\tRESULTS:{index} = {line}");
+            }
+            return sb.ToString();
+        }
         public List<ERACodeFuncSegment> GetExtraFuncs()
         {
             List<ERACodeFuncSegment> result = [];
             foreach (var func in CardScript.Funcs)
             {
                 string actualFuncName = CardScript.GetFuncActualName(func.FuncName);
-                
+
                 // 使用正则表达式确保ID是全字匹配的
                 // 检查函数名是否包含完整的卡片ID（作为一个完整的单词）
                 string idPattern = $@"(^|[^0-9])({Id})([^0-9]|$)";
@@ -223,10 +386,10 @@ namespace EOProcesser
                     // 跳过包含该卡片ID的函数，这些函数应该已经由特定的getter处理
                     continue;
                 }
-                
+
                 // 检查函数名是否不包含任何数字
                 bool hasDigits = actualFuncName.Any(char.IsDigit);
-                
+
                 if (!hasDigits)
                 {
                     result.Add(func);
@@ -292,6 +455,22 @@ namespace EOProcesser
         public List<TreeNode> GetTreeNode()
         {
             return [new(ToString()) { Tag = this }];
+        }
+
+        internal void SetCardCategory(IEnumerable<string> enumerable)
+        {
+            Categories.Clear();
+            Categories.AddRange(enumerable);
+        }
+
+        internal void AddCardCategory(string cat)
+        {
+            Categories.Add(cat);
+        }
+
+        internal void RemoveCardCategory(string cat)
+        {
+            Categories.Remove(cat);
         }
     }
 }
