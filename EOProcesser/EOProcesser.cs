@@ -445,7 +445,7 @@ namespace EOProcesser
             eeCardSummonAA.ClearAll();
             eeExtraFuncs.ClearAll();
         }
-        string? CurrentFile = null;
+        ERAOCGCardScript? CurrentCardScript = null;
         private void treeCards_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node.Tag is ERAOCGCardScript script)
@@ -458,7 +458,7 @@ namespace EOProcesser
                     {
                         listCardScriptCard.Items.Add(card);
                     }
-                    CurrentFile = script.ScriptFile;
+                    CurrentCardScript = script;
                 }
             }
             else if (e.Node.Tag is ERAOCGCard card)
@@ -470,7 +470,7 @@ namespace EOProcesser
                     {
                         listCardScriptCard.Items.Add(c);
                     }
-                    CurrentFile = card.CardScript.ScriptFile;
+                    CurrentCardScript = card.CardScript;
                     tabCardEditPanel.SelectedIndex = 0;
                 }
             }
@@ -556,7 +556,7 @@ namespace EOProcesser
             }
             try
             {
-                if (CurrentFile == null || CurrentCard == null)
+                if (CurrentCardScript == null || CurrentCard == null)
                 {
                     return;
                 }
@@ -670,6 +670,11 @@ namespace EOProcesser
                 // Show the context menu
                 CodeViewMenuStrip.Show(tvFolderFiles, e.Location);
             }
+        }
+
+        private void btnSaveSingleCard_Click(object sender, EventArgs e)
+        {
+            
         }
     }
 }
