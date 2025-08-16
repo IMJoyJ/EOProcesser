@@ -205,15 +205,15 @@ namespace EOProcesser
         public int Id = -1;
         public ERACodeFuncSegment GetCardNameFunc() =>
             CardScript.GetFunc($"CARDNAME_{Id}") ?? InitCardNameFunc();
-        public ERACodeFuncSegment? GetCardInfoFunc() =>
+        public ERACodeFuncSegment GetCardInfoFunc() =>
             CardScript.GetFunc($"CARD_{Id}") ?? InitCardInfoFunc();
-        public ERACodeFuncSegment? GetCardExplanationFunc() =>
+        public ERACodeFuncSegment GetCardExplanationFunc() =>
             CardScript.GetFunc($"CARD_EXPLANATION_{Id}") ?? InitCardExplanationFunc();
-        public ERACodeFuncSegment? GetCardCanFunc() =>
+        public ERACodeFuncSegment GetCardCanFunc() =>
             CardScript.GetFunc($"CARDCAN_{Id}") ?? InitCardCanFunc();
-        public ERACodeFuncSegment? GetCardAAFunc() =>
+        public ERACodeFuncSegment GetCardAAFunc() =>
             CardScript.GetFunc($"CARDSUMMON_AA_{Id}") ?? InitCardAAFunc();
-        public ERACodeFuncSegment? GetCardEffectFunc() =>
+        public ERACodeFuncSegment GetCardEffectFunc() =>
             CardScript.GetFunc($"CARDEFFECT_{Id}") ?? InitCardEffectFunc();
 
         private ERACodeFuncSegment InitCardNameFunc()
