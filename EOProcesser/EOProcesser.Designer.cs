@@ -88,6 +88,10 @@
             CodeViewMenuStrip = new ContextMenuStrip(components);
             openToolStripMenuItem = new ToolStripMenuItem();
             bwLoadCards = new System.ComponentModel.BackgroundWorker();
+            button2 = new Button();
+            button3 = new Button();
+            button4 = new Button();
+            button5 = new Button();
             menuStrip.SuspendLayout();
             tabControl.SuspendLayout();
             tabPageCardEdit.SuspendLayout();
@@ -316,6 +320,10 @@
             // 
             // tabCardInfoSettings
             // 
+            tabCardInfoSettings.Controls.Add(button2);
+            tabCardInfoSettings.Controls.Add(button3);
+            tabCardInfoSettings.Controls.Add(button4);
+            tabCardInfoSettings.Controls.Add(button5);
             tabCardInfoSettings.Controls.Add(btnSaveSingleCardToScript);
             tabCardInfoSettings.Controls.Add(btnEditCardInfo);
             tabCardInfoSettings.Controls.Add(label5);
@@ -344,10 +352,10 @@
             // 
             // btnSaveSingleCardToScript
             // 
-            btnSaveSingleCardToScript.Location = new Point(27, 505);
+            btnSaveSingleCardToScript.Location = new Point(25, 635);
             btnSaveSingleCardToScript.Margin = new Padding(2, 4, 2, 4);
             btnSaveSingleCardToScript.Name = "btnSaveSingleCardToScript";
-            btnSaveSingleCardToScript.Size = new Size(468, 101);
+            btnSaveSingleCardToScript.Size = new Size(470, 101);
             btnSaveSingleCardToScript.TabIndex = 16;
             btnSaveSingleCardToScript.Text = "カード保存";
             btnSaveSingleCardToScript.UseVisualStyleBackColor = true;
@@ -367,7 +375,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(25, 388);
+            label5.Location = new Point(105, 490);
             label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
             label5.Size = new Size(77, 78);
@@ -420,22 +428,22 @@
             // 
             // btnQuickSetSpellTrap
             // 
-            btnQuickSetSpellTrap.Location = new Point(135, 431);
+            btnQuickSetSpellTrap.Location = new Point(215, 533);
             btnQuickSetSpellTrap.Margin = new Padding(2, 4, 2, 4);
             btnQuickSetSpellTrap.Name = "btnQuickSetSpellTrap";
             btnQuickSetSpellTrap.Size = new Size(360, 57);
             btnQuickSetSpellTrap.TabIndex = 9;
-            btnQuickSetSpellTrap.Text = "魔法・罠";
+            btnQuickSetSpellTrap.Text = "魔法・罠→";
             btnQuickSetSpellTrap.UseVisualStyleBackColor = true;
             // 
             // btnQuickSetMonster
             // 
-            btnQuickSetMonster.Location = new Point(135, 369);
+            btnQuickSetMonster.Location = new Point(215, 471);
             btnQuickSetMonster.Margin = new Padding(2, 4, 2, 4);
             btnQuickSetMonster.Name = "btnQuickSetMonster";
             btnQuickSetMonster.Size = new Size(360, 57);
             btnQuickSetMonster.TabIndex = 8;
-            btnQuickSetMonster.Text = "モンスター";
+            btnQuickSetMonster.Text = "モンスター→";
             btnQuickSetMonster.UseVisualStyleBackColor = true;
             // 
             // listCardInfo
@@ -776,6 +784,50 @@
             bwLoadCards.ProgressChanged += bwLoadCards_ProgressChanged;
             bwLoadCards.RunWorkerCompleted += bwLoadCards_RunWorkerCompleted;
             // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button2.Location = new Point(418, 363);
+            button2.Margin = new Padding(2, 4, 2, 4);
+            button2.Name = "button2";
+            button2.Size = new Size(76, 57);
+            button2.TabIndex = 20;
+            button2.Text = "↓";
+            button2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button3.Location = new Point(334, 363);
+            button3.Margin = new Padding(2, 4, 2, 4);
+            button3.Name = "button3";
+            button3.Size = new Size(76, 57);
+            button3.TabIndex = 19;
+            button3.Text = "↑";
+            button3.UseVisualStyleBackColor = true;
+            // 
+            // button4
+            // 
+            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button4.Location = new Point(215, 363);
+            button4.Margin = new Padding(2, 4, 2, 4);
+            button4.Name = "button4";
+            button4.Size = new Size(108, 57);
+            button4.TabIndex = 18;
+            button4.Text = "削除";
+            button4.UseVisualStyleBackColor = true;
+            // 
+            // button5
+            // 
+            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button5.Location = new Point(105, 363);
+            button5.Margin = new Padding(2, 4, 2, 4);
+            button5.Name = "button5";
+            button5.Size = new Size(104, 57);
+            button5.TabIndex = 17;
+            button5.Text = "追加";
+            button5.UseVisualStyleBackColor = true;
+            // 
             // EOProcesser
             // 
             AutoScaleDimensions = new SizeF(18F, 39F);
@@ -884,5 +936,9 @@
         private EffectEditor eeExtraFuncs;
         private SplitContainer splitContainer1;
         private EffectEditor eeCardManagerScriptEditor;
+        private Button button2;
+        private Button button3;
+        private Button button4;
+        private Button button5;
     }
 }

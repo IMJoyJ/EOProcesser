@@ -562,10 +562,7 @@ namespace EOProcesser
                 }
                 treeCardEffectList.Nodes.Clear();
                 EOCardManagerCardEffect effect = EOCardManagerCardEffect.Parse(CurrentCard);
-                foreach (var eff in effect)
-                {
-                    treeCardEffectList.Nodes.AddRange(eff.GetTreeNodes());
-                }
+                treeCardEffectList.Nodes.AddRange([.. effect.GetTreeNodes()]);
             }
             catch (Exception ex)
             {
