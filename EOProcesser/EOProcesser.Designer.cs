@@ -47,6 +47,10 @@
             btnCardScriptAddCard = new Button();
             listCardScriptCard = new ListBox();
             tabCardInfoSettings = new TabPage();
+            button2 = new Button();
+            button3 = new Button();
+            button4 = new Button();
+            button5 = new Button();
             btnSaveSingleCardToScript = new Button();
             btnEditCardInfo = new Button();
             label5 = new Label();
@@ -88,10 +92,6 @@
             CodeViewMenuStrip = new ContextMenuStrip(components);
             openToolStripMenuItem = new ToolStripMenuItem();
             bwLoadCards = new System.ComponentModel.BackgroundWorker();
-            button2 = new Button();
-            button3 = new Button();
-            button4 = new Button();
-            button5 = new Button();
             menuStrip.SuspendLayout();
             tabControl.SuspendLayout();
             tabPageCardEdit.SuspendLayout();
@@ -126,8 +126,8 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Padding = new Padding(14, 6, 0, 6);
-            menuStrip.Size = new Size(1692, 55);
+            menuStrip.Padding = new Padding(6, 3, 0, 3);
+            menuStrip.Size = new Size(752, 30);
             menuStrip.TabIndex = 1;
             menuStrip.Text = "menuStrip1";
             // 
@@ -135,20 +135,20 @@
             // 
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            fileToolStripMenuItem.Size = new Size(90, 43);
+            fileToolStripMenuItem.Size = new Size(46, 24);
             fileToolStripMenuItem.Text = "File";
             // 
             // settingsToolStripMenuItem
             // 
             settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            settingsToolStripMenuItem.Size = new Size(297, 54);
+            settingsToolStripMenuItem.Size = new Size(145, 26);
             settingsToolStripMenuItem.Text = "Settings";
             settingsToolStripMenuItem.Click += settingsToolStripMenuItem_Click;
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(297, 54);
+            exitToolStripMenuItem.Size = new Size(145, 26);
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
@@ -157,21 +157,21 @@
             tabControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tabControl.Controls.Add(tabPageCardEdit);
             tabControl.Controls.Add(tabPageCodeView);
-            tabControl.Location = new Point(0, 57);
-            tabControl.Margin = new Padding(2, 6, 2, 6);
+            tabControl.Location = new Point(0, 29);
+            tabControl.Margin = new Padding(1, 3, 1, 3);
             tabControl.Name = "tabControl";
             tabControl.SelectedIndex = 0;
-            tabControl.Size = new Size(1692, 971);
+            tabControl.Size = new Size(752, 498);
             tabControl.TabIndex = 2;
             // 
             // tabPageCardEdit
             // 
             tabPageCardEdit.Controls.Add(splitContainerCardEdit);
-            tabPageCardEdit.Location = new Point(10, 56);
-            tabPageCardEdit.Margin = new Padding(2, 6, 2, 6);
+            tabPageCardEdit.Location = new Point(4, 29);
+            tabPageCardEdit.Margin = new Padding(1, 3, 1, 3);
             tabPageCardEdit.Name = "tabPageCardEdit";
-            tabPageCardEdit.Padding = new Padding(2, 6, 2, 6);
-            tabPageCardEdit.Size = new Size(1672, 905);
+            tabPageCardEdit.Padding = new Padding(1, 3, 1, 3);
+            tabPageCardEdit.Size = new Size(744, 465);
             tabPageCardEdit.TabIndex = 1;
             tabPageCardEdit.Text = "Card Edit";
             tabPageCardEdit.UseVisualStyleBackColor = true;
@@ -179,8 +179,8 @@
             // splitContainerCardEdit
             // 
             splitContainerCardEdit.Dock = DockStyle.Fill;
-            splitContainerCardEdit.Location = new Point(2, 6);
-            splitContainerCardEdit.Margin = new Padding(9, 8, 9, 8);
+            splitContainerCardEdit.Location = new Point(1, 3);
+            splitContainerCardEdit.Margin = new Padding(4);
             splitContainerCardEdit.Name = "splitContainerCardEdit";
             // 
             // splitContainerCardEdit.Panel1
@@ -192,18 +192,17 @@
             // splitContainerCardEdit.Panel2
             // 
             splitContainerCardEdit.Panel2.Controls.Add(tabCardEditPanel);
-            splitContainerCardEdit.Size = new Size(1668, 893);
-            splitContainerCardEdit.SplitterDistance = 449;
-            splitContainerCardEdit.SplitterWidth = 9;
+            splitContainerCardEdit.Size = new Size(742, 459);
+            splitContainerCardEdit.SplitterDistance = 199;
             splitContainerCardEdit.TabIndex = 0;
             // 
             // btnSearch
             // 
             btnSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSearch.Location = new Point(325, 8);
-            btnSearch.Margin = new Padding(9, 8, 9, 8);
+            btnSearch.Location = new Point(143, 4);
+            btnSearch.Margin = new Padding(4);
             btnSearch.Name = "btnSearch";
-            btnSearch.Size = new Size(117, 57);
+            btnSearch.Size = new Size(52, 29);
             btnSearch.TabIndex = 2;
             btnSearch.Text = "检索";
             btnSearch.UseVisualStyleBackColor = true;
@@ -212,20 +211,20 @@
             // txtSearchCard
             // 
             txtSearchCard.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtSearchCard.Location = new Point(9, 12);
-            txtSearchCard.Margin = new Padding(9, 8, 9, 8);
+            txtSearchCard.Location = new Point(4, 6);
+            txtSearchCard.Margin = new Padding(4);
             txtSearchCard.Name = "txtSearchCard";
-            txtSearchCard.Size = new Size(300, 46);
+            txtSearchCard.Size = new Size(135, 27);
             txtSearchCard.TabIndex = 1;
             txtSearchCard.KeyDown += txtSearchCard_KeyDown;
             // 
             // treeCards
             // 
             treeCards.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            treeCards.Location = new Point(0, 82);
-            treeCards.Margin = new Padding(9, 8, 9, 8);
+            treeCards.Location = new Point(0, 42);
+            treeCards.Margin = new Padding(4);
             treeCards.Name = "treeCards";
-            treeCards.Size = new Size(435, 796);
+            treeCards.Size = new Size(195, 411);
             treeCards.TabIndex = 0;
             treeCards.NodeMouseClick += treeCards_NodeMouseClick;
             treeCards.NodeMouseDoubleClick += treeCards_NodeMouseDoubleClick;
@@ -242,10 +241,10 @@
             tabCardEditPanel.Controls.Add(tabEffectCan);
             tabCardEditPanel.Dock = DockStyle.Fill;
             tabCardEditPanel.Location = new Point(0, 0);
-            tabCardEditPanel.Margin = new Padding(2, 4, 2, 4);
+            tabCardEditPanel.Margin = new Padding(1, 2, 1, 2);
             tabCardEditPanel.Name = "tabCardEditPanel";
             tabCardEditPanel.SelectedIndex = 0;
-            tabCardEditPanel.Size = new Size(1210, 893);
+            tabCardEditPanel.Size = new Size(539, 459);
             tabCardEditPanel.TabIndex = 0;
             // 
             // tabCardSelect
@@ -255,10 +254,10 @@
             tabCardSelect.Controls.Add(btnCardScriptRemoveCard);
             tabCardSelect.Controls.Add(btnCardScriptAddCard);
             tabCardSelect.Controls.Add(listCardScriptCard);
-            tabCardSelect.Location = new Point(10, 56);
-            tabCardSelect.Margin = new Padding(2, 4, 2, 4);
+            tabCardSelect.Location = new Point(4, 29);
+            tabCardSelect.Margin = new Padding(1, 2, 1, 2);
             tabCardSelect.Name = "tabCardSelect";
-            tabCardSelect.Size = new Size(1190, 827);
+            tabCardSelect.Size = new Size(531, 426);
             tabCardSelect.TabIndex = 7;
             tabCardSelect.Text = "カード選択";
             tabCardSelect.UseVisualStyleBackColor = true;
@@ -266,55 +265,59 @@
             // btnCardScriptMoveDown
             // 
             btnCardScriptMoveDown.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnCardScriptMoveDown.Location = new Point(331, 684);
-            btnCardScriptMoveDown.Margin = new Padding(2, 4, 2, 4);
+            btnCardScriptMoveDown.Location = new Point(165, 395);
+            btnCardScriptMoveDown.Margin = new Padding(1, 2, 1, 2);
             btnCardScriptMoveDown.Name = "btnCardScriptMoveDown";
-            btnCardScriptMoveDown.Size = new Size(76, 57);
+            btnCardScriptMoveDown.Size = new Size(34, 29);
             btnCardScriptMoveDown.TabIndex = 19;
             btnCardScriptMoveDown.Text = "↓";
             btnCardScriptMoveDown.UseVisualStyleBackColor = true;
+            btnCardScriptMoveDown.Click += btnCardScriptMoveDown_Click;
             // 
             // btnCardScriptMoveUp
             // 
             btnCardScriptMoveUp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnCardScriptMoveUp.Location = new Point(248, 684);
-            btnCardScriptMoveUp.Margin = new Padding(2, 4, 2, 4);
+            btnCardScriptMoveUp.Location = new Point(128, 395);
+            btnCardScriptMoveUp.Margin = new Padding(1, 2, 1, 2);
             btnCardScriptMoveUp.Name = "btnCardScriptMoveUp";
-            btnCardScriptMoveUp.Size = new Size(76, 57);
+            btnCardScriptMoveUp.Size = new Size(34, 29);
             btnCardScriptMoveUp.TabIndex = 18;
             btnCardScriptMoveUp.Text = "↑";
             btnCardScriptMoveUp.UseVisualStyleBackColor = true;
+            btnCardScriptMoveUp.Click += btnCardScriptMoveUp_Click;
             // 
             // btnCardScriptRemoveCard
             // 
             btnCardScriptRemoveCard.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnCardScriptRemoveCard.Location = new Point(128, 684);
-            btnCardScriptRemoveCard.Margin = new Padding(2, 4, 2, 4);
+            btnCardScriptRemoveCard.Location = new Point(67, 395);
+            btnCardScriptRemoveCard.Margin = new Padding(1, 2, 1, 2);
             btnCardScriptRemoveCard.Name = "btnCardScriptRemoveCard";
-            btnCardScriptRemoveCard.Size = new Size(108, 57);
+            btnCardScriptRemoveCard.Size = new Size(57, 29);
             btnCardScriptRemoveCard.TabIndex = 17;
             btnCardScriptRemoveCard.Text = "削除";
             btnCardScriptRemoveCard.UseVisualStyleBackColor = true;
+            btnCardScriptRemoveCard.Click += btnCardScriptRemoveCard_Click;
             // 
             // btnCardScriptAddCard
             // 
             btnCardScriptAddCard.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnCardScriptAddCard.Location = new Point(18, 684);
-            btnCardScriptAddCard.Margin = new Padding(2, 4, 2, 4);
+            btnCardScriptAddCard.Location = new Point(8, 395);
+            btnCardScriptAddCard.Margin = new Padding(1, 2, 1, 2);
             btnCardScriptAddCard.Name = "btnCardScriptAddCard";
-            btnCardScriptAddCard.Size = new Size(104, 57);
+            btnCardScriptAddCard.Size = new Size(57, 29);
             btnCardScriptAddCard.TabIndex = 16;
             btnCardScriptAddCard.Text = "追加";
             btnCardScriptAddCard.UseVisualStyleBackColor = true;
+            btnCardScriptAddCard.Click += btnCardScriptAddCard_Click;
             // 
             // listCardScriptCard
             // 
             listCardScriptCard.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             listCardScriptCard.FormattingEnabled = true;
-            listCardScriptCard.Location = new Point(18, 25);
-            listCardScriptCard.Margin = new Padding(2, 4, 2, 4);
+            listCardScriptCard.Location = new Point(8, 13);
+            listCardScriptCard.Margin = new Padding(1, 2, 1, 2);
             listCardScriptCard.Name = "listCardScriptCard";
-            listCardScriptCard.Size = new Size(1134, 589);
+            listCardScriptCard.Size = new Size(513, 364);
             listCardScriptCard.TabIndex = 0;
             listCardScriptCard.MouseDoubleClick += listCardScriptCard_MouseDoubleClick;
             // 
@@ -341,21 +344,65 @@
             tabCardInfoSettings.Controls.Add(txtShortName);
             tabCardInfoSettings.Controls.Add(label1);
             tabCardInfoSettings.Controls.Add(txtCardName);
-            tabCardInfoSettings.Location = new Point(10, 56);
-            tabCardInfoSettings.Margin = new Padding(2, 4, 2, 4);
+            tabCardInfoSettings.Location = new Point(4, 29);
+            tabCardInfoSettings.Margin = new Padding(1, 2, 1, 2);
             tabCardInfoSettings.Name = "tabCardInfoSettings";
-            tabCardInfoSettings.Padding = new Padding(2, 4, 2, 4);
-            tabCardInfoSettings.Size = new Size(1190, 827);
+            tabCardInfoSettings.Padding = new Padding(1, 2, 1, 2);
+            tabCardInfoSettings.Size = new Size(531, 426);
             tabCardInfoSettings.TabIndex = 0;
             tabCardInfoSettings.Text = "基本情報";
             tabCardInfoSettings.UseVisualStyleBackColor = true;
             // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button2.Location = new Point(192, 204);
+            button2.Margin = new Padding(1, 2, 1, 2);
+            button2.Name = "button2";
+            button2.Size = new Size(34, 29);
+            button2.TabIndex = 20;
+            button2.Text = "↓";
+            button2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button3.Location = new Point(155, 204);
+            button3.Margin = new Padding(1, 2, 1, 2);
+            button3.Name = "button3";
+            button3.Size = new Size(34, 29);
+            button3.TabIndex = 19;
+            button3.Text = "↑";
+            button3.UseVisualStyleBackColor = true;
+            // 
+            // button4
+            // 
+            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button4.Location = new Point(102, 204);
+            button4.Margin = new Padding(1, 2, 1, 2);
+            button4.Name = "button4";
+            button4.Size = new Size(48, 29);
+            button4.TabIndex = 18;
+            button4.Text = "削除";
+            button4.UseVisualStyleBackColor = true;
+            // 
+            // button5
+            // 
+            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            button5.Location = new Point(53, 204);
+            button5.Margin = new Padding(1, 2, 1, 2);
+            button5.Name = "button5";
+            button5.Size = new Size(46, 29);
+            button5.TabIndex = 17;
+            button5.Text = "追加";
+            button5.UseVisualStyleBackColor = true;
+            // 
             // btnSaveSingleCardToScript
             // 
-            btnSaveSingleCardToScript.Location = new Point(25, 635);
-            btnSaveSingleCardToScript.Margin = new Padding(2, 4, 2, 4);
+            btnSaveSingleCardToScript.Location = new Point(11, 326);
+            btnSaveSingleCardToScript.Margin = new Padding(1, 2, 1, 2);
             btnSaveSingleCardToScript.Name = "btnSaveSingleCardToScript";
-            btnSaveSingleCardToScript.Size = new Size(470, 101);
+            btnSaveSingleCardToScript.Size = new Size(209, 52);
             btnSaveSingleCardToScript.TabIndex = 16;
             btnSaveSingleCardToScript.Text = "カード保存";
             btnSaveSingleCardToScript.UseVisualStyleBackColor = true;
@@ -364,10 +411,10 @@
             // btnEditCardInfo
             // 
             btnEditCardInfo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnEditCardInfo.Location = new Point(655, 688);
-            btnEditCardInfo.Margin = new Padding(2, 4, 2, 4);
+            btnEditCardInfo.Location = new Point(297, 371);
+            btnEditCardInfo.Margin = new Padding(1, 2, 1, 2);
             btnEditCardInfo.Name = "btnEditCardInfo";
-            btnEditCardInfo.Size = new Size(104, 57);
+            btnEditCardInfo.Size = new Size(46, 29);
             btnEditCardInfo.TabIndex = 15;
             btnEditCardInfo.Text = "編集";
             btnEditCardInfo.UseVisualStyleBackColor = true;
@@ -375,20 +422,20 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(105, 490);
-            label5.Margin = new Padding(2, 0, 2, 0);
+            label5.Location = new Point(47, 251);
+            label5.Margin = new Padding(1, 0, 1, 0);
             label5.Name = "label5";
-            label5.Size = new Size(77, 78);
+            label5.Size = new Size(39, 40);
             label5.TabIndex = 14;
             label5.Text = "便利\r\n設定";
             // 
             // btnMoveDownCardInfo
             // 
             btnMoveDownCardInfo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnMoveDownCardInfo.Location = new Point(1078, 688);
-            btnMoveDownCardInfo.Margin = new Padding(2, 4, 2, 4);
+            btnMoveDownCardInfo.Location = new Point(485, 371);
+            btnMoveDownCardInfo.Margin = new Padding(1, 2, 1, 2);
             btnMoveDownCardInfo.Name = "btnMoveDownCardInfo";
-            btnMoveDownCardInfo.Size = new Size(76, 57);
+            btnMoveDownCardInfo.Size = new Size(34, 29);
             btnMoveDownCardInfo.TabIndex = 13;
             btnMoveDownCardInfo.Text = "↓";
             btnMoveDownCardInfo.UseVisualStyleBackColor = true;
@@ -396,10 +443,10 @@
             // btnMoveUpCardInfo
             // 
             btnMoveUpCardInfo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnMoveUpCardInfo.Location = new Point(994, 688);
-            btnMoveUpCardInfo.Margin = new Padding(2, 4, 2, 4);
+            btnMoveUpCardInfo.Location = new Point(448, 371);
+            btnMoveUpCardInfo.Margin = new Padding(1, 2, 1, 2);
             btnMoveUpCardInfo.Name = "btnMoveUpCardInfo";
-            btnMoveUpCardInfo.Size = new Size(76, 57);
+            btnMoveUpCardInfo.Size = new Size(34, 29);
             btnMoveUpCardInfo.TabIndex = 12;
             btnMoveUpCardInfo.Text = "↑";
             btnMoveUpCardInfo.UseVisualStyleBackColor = true;
@@ -407,10 +454,10 @@
             // btnDeleteCardInfo
             // 
             btnDeleteCardInfo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnDeleteCardInfo.Location = new Point(875, 688);
-            btnDeleteCardInfo.Margin = new Padding(2, 4, 2, 4);
+            btnDeleteCardInfo.Location = new Point(395, 371);
+            btnDeleteCardInfo.Margin = new Padding(1, 2, 1, 2);
             btnDeleteCardInfo.Name = "btnDeleteCardInfo";
-            btnDeleteCardInfo.Size = new Size(108, 57);
+            btnDeleteCardInfo.Size = new Size(48, 29);
             btnDeleteCardInfo.TabIndex = 11;
             btnDeleteCardInfo.Text = "削除";
             btnDeleteCardInfo.UseVisualStyleBackColor = true;
@@ -418,30 +465,30 @@
             // btnAddCardInfo
             // 
             btnAddCardInfo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnAddCardInfo.Location = new Point(765, 688);
-            btnAddCardInfo.Margin = new Padding(2, 4, 2, 4);
+            btnAddCardInfo.Location = new Point(346, 371);
+            btnAddCardInfo.Margin = new Padding(1, 2, 1, 2);
             btnAddCardInfo.Name = "btnAddCardInfo";
-            btnAddCardInfo.Size = new Size(104, 57);
+            btnAddCardInfo.Size = new Size(46, 29);
             btnAddCardInfo.TabIndex = 10;
             btnAddCardInfo.Text = "追加";
             btnAddCardInfo.UseVisualStyleBackColor = true;
             // 
             // btnQuickSetSpellTrap
             // 
-            btnQuickSetSpellTrap.Location = new Point(215, 533);
-            btnQuickSetSpellTrap.Margin = new Padding(2, 4, 2, 4);
+            btnQuickSetSpellTrap.Location = new Point(96, 273);
+            btnQuickSetSpellTrap.Margin = new Padding(1, 2, 1, 2);
             btnQuickSetSpellTrap.Name = "btnQuickSetSpellTrap";
-            btnQuickSetSpellTrap.Size = new Size(360, 57);
+            btnQuickSetSpellTrap.Size = new Size(160, 29);
             btnQuickSetSpellTrap.TabIndex = 9;
             btnQuickSetSpellTrap.Text = "魔法・罠→";
             btnQuickSetSpellTrap.UseVisualStyleBackColor = true;
             // 
             // btnQuickSetMonster
             // 
-            btnQuickSetMonster.Location = new Point(215, 471);
-            btnQuickSetMonster.Margin = new Padding(2, 4, 2, 4);
+            btnQuickSetMonster.Location = new Point(96, 242);
+            btnQuickSetMonster.Margin = new Padding(1, 2, 1, 2);
             btnQuickSetMonster.Name = "btnQuickSetMonster";
-            btnQuickSetMonster.Size = new Size(360, 57);
+            btnQuickSetMonster.Size = new Size(160, 29);
             btnQuickSetMonster.TabIndex = 8;
             btnQuickSetMonster.Text = "モンスター→";
             btnQuickSetMonster.UseVisualStyleBackColor = true;
@@ -450,38 +497,38 @@
             // 
             listCardInfo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             listCardInfo.FormattingEnabled = true;
-            listCardInfo.Location = new Point(596, 107);
-            listCardInfo.Margin = new Padding(2, 4, 2, 4);
+            listCardInfo.Location = new Point(265, 55);
+            listCardInfo.Margin = new Padding(1, 2, 1, 2);
             listCardInfo.Name = "listCardInfo";
-            listCardInfo.Size = new Size(558, 511);
+            listCardInfo.Size = new Size(257, 264);
             listCardInfo.TabIndex = 7;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(513, 107);
-            label4.Margin = new Padding(2, 0, 2, 0);
+            label4.Location = new Point(228, 55);
+            label4.Margin = new Padding(1, 0, 1, 0);
             label4.Name = "label4";
-            label4.Size = new Size(77, 39);
+            label4.Size = new Size(39, 20);
             label4.TabIndex = 6;
             label4.Text = "情報";
             // 
             // listCategory
             // 
             listCategory.FormattingEnabled = true;
-            listCategory.Location = new Point(135, 107);
-            listCategory.Margin = new Padding(2, 4, 2, 4);
+            listCategory.Location = new Point(60, 55);
+            listCategory.Margin = new Padding(1, 2, 1, 2);
             listCategory.Name = "listCategory";
-            listCategory.Size = new Size(360, 238);
+            listCategory.Size = new Size(162, 124);
             listCategory.TabIndex = 5;
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(25, 107);
-            label3.Margin = new Padding(2, 0, 2, 0);
+            label3.Location = new Point(11, 55);
+            label3.Margin = new Padding(1, 0, 1, 0);
             label3.Name = "label3";
-            label3.Size = new Size(77, 39);
+            label3.Size = new Size(39, 20);
             label3.TabIndex = 4;
             label3.Text = "分類";
             // 
@@ -489,39 +536,39 @@
             // 
             label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label2.AutoSize = true;
-            label2.Location = new Point(821, 27);
-            label2.Margin = new Padding(2, 0, 2, 0);
+            label2.Location = new Point(371, 14);
+            label2.Margin = new Padding(1, 0, 1, 0);
             label2.Name = "label2";
-            label2.Size = new Size(77, 39);
+            label2.Size = new Size(39, 20);
             label2.TabIndex = 3;
             label2.Text = "略称";
             // 
             // txtShortName
             // 
             txtShortName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            txtShortName.Location = new Point(904, 27);
-            txtShortName.Margin = new Padding(2, 4, 2, 4);
+            txtShortName.Location = new Point(408, 14);
+            txtShortName.Margin = new Padding(1, 2, 1, 2);
             txtShortName.Name = "txtShortName";
-            txtShortName.Size = new Size(249, 46);
+            txtShortName.Size = new Size(113, 27);
             txtShortName.TabIndex = 2;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(25, 27);
-            label1.Margin = new Padding(2, 0, 2, 0);
+            label1.Location = new Point(11, 14);
+            label1.Margin = new Padding(1, 0, 1, 0);
             label1.Name = "label1";
-            label1.Size = new Size(77, 39);
+            label1.Size = new Size(39, 20);
             label1.TabIndex = 1;
             label1.Text = "名前";
             // 
             // txtCardName
             // 
             txtCardName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtCardName.Location = new Point(135, 25);
-            txtCardName.Margin = new Padding(2, 4, 2, 4);
+            txtCardName.Location = new Point(60, 13);
+            txtCardName.Margin = new Padding(1, 2, 1, 2);
             txtCardName.Name = "txtCardName";
-            txtCardName.Size = new Size(670, 46);
+            txtCardName.Size = new Size(306, 27);
             txtCardName.TabIndex = 0;
             // 
             // tabEffect
@@ -530,10 +577,10 @@
             tabEffect.Controls.Add(label6);
             tabEffect.Controls.Add(radioCustomStandardEffect);
             tabEffect.Controls.Add(radioCMStandardEffect);
-            tabEffect.Location = new Point(10, 56);
-            tabEffect.Margin = new Padding(2, 4, 2, 4);
+            tabEffect.Location = new Point(4, 29);
+            tabEffect.Margin = new Padding(1, 2, 1, 2);
             tabEffect.Name = "tabEffect";
-            tabEffect.Size = new Size(1190, 827);
+            tabEffect.Size = new Size(531, 426);
             tabEffect.TabIndex = 3;
             tabEffect.Text = "効果設定";
             tabEffect.UseVisualStyleBackColor = true;
@@ -541,8 +588,7 @@
             // splitContainer1
             // 
             splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            splitContainer1.Location = new Point(18, 160);
-            splitContainer1.Margin = new Padding(7, 6, 7, 6);
+            splitContainer1.Location = new Point(8, 82);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -552,28 +598,28 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(eeCardManagerScriptEditor);
-            splitContainer1.Size = new Size(1141, 599);
-            splitContainer1.SplitterDistance = 380;
-            splitContainer1.SplitterWidth = 9;
+            splitContainer1.Size = new Size(513, 325);
+            splitContainer1.SplitterDistance = 170;
             splitContainer1.TabIndex = 4;
             // 
             // treeCardEffectList
             // 
             treeCardEffectList.Dock = DockStyle.Fill;
             treeCardEffectList.Location = new Point(0, 0);
-            treeCardEffectList.Margin = new Padding(2, 4, 2, 4);
+            treeCardEffectList.Margin = new Padding(1, 2, 1, 2);
             treeCardEffectList.Name = "treeCardEffectList";
-            treeCardEffectList.Size = new Size(380, 599);
+            treeCardEffectList.Size = new Size(170, 325);
             treeCardEffectList.TabIndex = 2;
+            treeCardEffectList.NodeMouseClick += treeCardEffectList_NodeMouseClick;
             treeCardEffectList.NodeMouseDoubleClick += treeCardEffectList_NodeMouseDoubleClick;
             // 
             // eeCardManagerScriptEditor
             // 
             eeCardManagerScriptEditor.Dock = DockStyle.Fill;
             eeCardManagerScriptEditor.Location = new Point(0, 0);
-            eeCardManagerScriptEditor.Margin = new Padding(16, 12, 16, 12);
+            eeCardManagerScriptEditor.Margin = new Padding(7, 6, 7, 6);
             eeCardManagerScriptEditor.Name = "eeCardManagerScriptEditor";
-            eeCardManagerScriptEditor.Size = new Size(752, 599);
+            eeCardManagerScriptEditor.Size = new Size(339, 325);
             eeCardManagerScriptEditor.TabIndex = 0;
             // 
             // label6
@@ -581,10 +627,10 @@
             label6.AutoSize = true;
             label6.BackColor = Color.SlateBlue;
             label6.ForeColor = Color.PaleGoldenrod;
-            label6.Location = new Point(18, 76);
-            label6.Margin = new Padding(2, 0, 2, 0);
+            label6.Location = new Point(8, 39);
+            label6.Margin = new Padding(1, 0, 1, 0);
             label6.Name = "label6";
-            label6.Size = new Size(1037, 78);
+            label6.Size = new Size(439, 40);
             label6.TabIndex = 3;
             label6.Text = "※Card Manager標準を使用すると、こちらの設定が優先され、\r\n右の「効果文」「効果関数」「効果可用性」タブの設定が無効になります。";
             // 
@@ -592,10 +638,10 @@
             // 
             radioCustomStandardEffect.AutoSize = true;
             radioCustomStandardEffect.Checked = true;
-            radioCustomStandardEffect.Location = new Point(369, 25);
-            radioCustomStandardEffect.Margin = new Padding(2, 4, 2, 4);
+            radioCustomStandardEffect.Location = new Point(164, 13);
+            radioCustomStandardEffect.Margin = new Padding(1, 2, 1, 2);
             radioCustomStandardEffect.Name = "radioCustomStandardEffect";
-            radioCustomStandardEffect.Size = new Size(294, 43);
+            radioCustomStandardEffect.Size = new Size(144, 24);
             radioCustomStandardEffect.TabIndex = 1;
             radioCustomStandardEffect.TabStop = true;
             radioCustomStandardEffect.Text = "高度な設定を使用";
@@ -604,10 +650,10 @@
             // radioCMStandardEffect
             // 
             radioCMStandardEffect.AutoSize = true;
-            radioCMStandardEffect.Location = new Point(18, 25);
-            radioCMStandardEffect.Margin = new Padding(2, 4, 2, 4);
+            radioCMStandardEffect.Location = new Point(8, 13);
+            radioCMStandardEffect.Margin = new Padding(1, 2, 1, 2);
             radioCMStandardEffect.Name = "radioCMStandardEffect";
-            radioCMStandardEffect.Size = new Size(318, 43);
+            radioCMStandardEffect.Size = new Size(154, 24);
             radioCMStandardEffect.TabIndex = 0;
             radioCMStandardEffect.Text = "Card Manager標準";
             radioCMStandardEffect.UseVisualStyleBackColor = true;
@@ -616,10 +662,10 @@
             // tabAA
             // 
             tabAA.Controls.Add(eeCardSummonAA);
-            tabAA.Location = new Point(10, 56);
-            tabAA.Margin = new Padding(2, 4, 2, 4);
+            tabAA.Location = new Point(4, 29);
+            tabAA.Margin = new Padding(1, 2, 1, 2);
             tabAA.Name = "tabAA";
-            tabAA.Size = new Size(1190, 827);
+            tabAA.Size = new Size(531, 426);
             tabAA.TabIndex = 4;
             tabAA.Text = "召喚AA";
             tabAA.UseVisualStyleBackColor = true;
@@ -628,18 +674,18 @@
             // 
             eeCardSummonAA.Dock = DockStyle.Fill;
             eeCardSummonAA.Location = new Point(0, 0);
-            eeCardSummonAA.Margin = new Padding(16, 12, 16, 12);
+            eeCardSummonAA.Margin = new Padding(7, 6, 7, 6);
             eeCardSummonAA.Name = "eeCardSummonAA";
-            eeCardSummonAA.Size = new Size(1190, 827);
+            eeCardSummonAA.Size = new Size(531, 426);
             eeCardSummonAA.TabIndex = 1;
             // 
             // tabExtraFuncs
             // 
             tabExtraFuncs.Controls.Add(eeExtraFuncs);
-            tabExtraFuncs.Location = new Point(10, 56);
-            tabExtraFuncs.Margin = new Padding(2, 4, 2, 4);
+            tabExtraFuncs.Location = new Point(4, 29);
+            tabExtraFuncs.Margin = new Padding(1, 2, 1, 2);
             tabExtraFuncs.Name = "tabExtraFuncs";
-            tabExtraFuncs.Size = new Size(1190, 827);
+            tabExtraFuncs.Size = new Size(531, 426);
             tabExtraFuncs.TabIndex = 5;
             tabExtraFuncs.Text = "追加関数";
             tabExtraFuncs.UseVisualStyleBackColor = true;
@@ -648,18 +694,18 @@
             // 
             eeExtraFuncs.Dock = DockStyle.Fill;
             eeExtraFuncs.Location = new Point(0, 0);
-            eeExtraFuncs.Margin = new Padding(16, 12, 16, 12);
+            eeExtraFuncs.Margin = new Padding(7, 6, 7, 6);
             eeExtraFuncs.Name = "eeExtraFuncs";
-            eeExtraFuncs.Size = new Size(1190, 827);
+            eeExtraFuncs.Size = new Size(531, 426);
             eeExtraFuncs.TabIndex = 1;
             // 
             // tabEffectFunc
             // 
             tabEffectFunc.Controls.Add(eeCardEffect);
-            tabEffectFunc.Location = new Point(10, 56);
-            tabEffectFunc.Margin = new Padding(2, 4, 2, 4);
+            tabEffectFunc.Location = new Point(4, 29);
+            tabEffectFunc.Margin = new Padding(1, 2, 1, 2);
             tabEffectFunc.Name = "tabEffectFunc";
-            tabEffectFunc.Size = new Size(1190, 827);
+            tabEffectFunc.Size = new Size(531, 426);
             tabEffectFunc.TabIndex = 8;
             tabEffectFunc.Text = "効果関数";
             tabEffectFunc.UseVisualStyleBackColor = true;
@@ -668,18 +714,18 @@
             // 
             eeCardEffect.Dock = DockStyle.Fill;
             eeCardEffect.Location = new Point(0, 0);
-            eeCardEffect.Margin = new Padding(16, 12, 16, 12);
+            eeCardEffect.Margin = new Padding(7, 6, 7, 6);
             eeCardEffect.Name = "eeCardEffect";
-            eeCardEffect.Size = new Size(1190, 827);
+            eeCardEffect.Size = new Size(531, 426);
             eeCardEffect.TabIndex = 0;
             // 
             // tabCardExplanation
             // 
             tabCardExplanation.Controls.Add(eeCardExplanation);
-            tabCardExplanation.Location = new Point(10, 56);
-            tabCardExplanation.Margin = new Padding(2, 4, 2, 4);
+            tabCardExplanation.Location = new Point(4, 29);
+            tabCardExplanation.Margin = new Padding(1, 2, 1, 2);
             tabCardExplanation.Name = "tabCardExplanation";
-            tabCardExplanation.Size = new Size(1190, 827);
+            tabCardExplanation.Size = new Size(531, 426);
             tabCardExplanation.TabIndex = 2;
             tabCardExplanation.Text = "効果文";
             tabCardExplanation.UseVisualStyleBackColor = true;
@@ -688,18 +734,18 @@
             // 
             eeCardExplanation.Dock = DockStyle.Fill;
             eeCardExplanation.Location = new Point(0, 0);
-            eeCardExplanation.Margin = new Padding(16, 12, 16, 12);
+            eeCardExplanation.Margin = new Padding(7, 6, 7, 6);
             eeCardExplanation.Name = "eeCardExplanation";
-            eeCardExplanation.Size = new Size(1190, 827);
+            eeCardExplanation.Size = new Size(531, 426);
             eeCardExplanation.TabIndex = 1;
             // 
             // tabEffectCan
             // 
             tabEffectCan.Controls.Add(eeCardCan);
-            tabEffectCan.Location = new Point(10, 56);
-            tabEffectCan.Margin = new Padding(2, 4, 2, 4);
+            tabEffectCan.Location = new Point(4, 29);
+            tabEffectCan.Margin = new Padding(1, 2, 1, 2);
             tabEffectCan.Name = "tabEffectCan";
-            tabEffectCan.Size = new Size(1190, 827);
+            tabEffectCan.Size = new Size(531, 426);
             tabEffectCan.TabIndex = 6;
             tabEffectCan.Text = "効果可用性";
             tabEffectCan.UseVisualStyleBackColor = true;
@@ -708,19 +754,19 @@
             // 
             eeCardCan.Dock = DockStyle.Fill;
             eeCardCan.Location = new Point(0, 0);
-            eeCardCan.Margin = new Padding(16, 12, 16, 12);
+            eeCardCan.Margin = new Padding(7, 6, 7, 6);
             eeCardCan.Name = "eeCardCan";
-            eeCardCan.Size = new Size(1190, 827);
+            eeCardCan.Size = new Size(531, 426);
             eeCardCan.TabIndex = 1;
             // 
             // tabPageCodeView
             // 
             tabPageCodeView.Controls.Add(splitContainer);
-            tabPageCodeView.Location = new Point(10, 56);
-            tabPageCodeView.Margin = new Padding(2, 6, 2, 6);
+            tabPageCodeView.Location = new Point(4, 29);
+            tabPageCodeView.Margin = new Padding(1, 3, 1, 3);
             tabPageCodeView.Name = "tabPageCodeView";
-            tabPageCodeView.Padding = new Padding(2, 6, 2, 6);
-            tabPageCodeView.Size = new Size(1672, 905);
+            tabPageCodeView.Padding = new Padding(1, 3, 1, 3);
+            tabPageCodeView.Size = new Size(744, 465);
             tabPageCodeView.TabIndex = 0;
             tabPageCodeView.Text = "Code View";
             tabPageCodeView.UseVisualStyleBackColor = true;
@@ -728,8 +774,8 @@
             // splitContainer
             // 
             splitContainer.Dock = DockStyle.Fill;
-            splitContainer.Location = new Point(2, 6);
-            splitContainer.Margin = new Padding(9, 8, 9, 8);
+            splitContainer.Location = new Point(1, 3);
+            splitContainer.Margin = new Padding(4);
             splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
@@ -739,18 +785,17 @@
             // splitContainer.Panel2
             // 
             splitContainer.Panel2.Controls.Add(eeCodeView);
-            splitContainer.Size = new Size(1668, 893);
-            splitContainer.SplitterDistance = 550;
-            splitContainer.SplitterWidth = 9;
+            splitContainer.Size = new Size(742, 459);
+            splitContainer.SplitterDistance = 244;
             splitContainer.TabIndex = 0;
             // 
             // tvFolderFiles
             // 
             tvFolderFiles.Dock = DockStyle.Fill;
             tvFolderFiles.Location = new Point(0, 0);
-            tvFolderFiles.Margin = new Padding(9, 8, 9, 8);
+            tvFolderFiles.Margin = new Padding(4);
             tvFolderFiles.Name = "tvFolderFiles";
-            tvFolderFiles.Size = new Size(550, 893);
+            tvFolderFiles.Size = new Size(244, 459);
             tvFolderFiles.TabIndex = 0;
             tvFolderFiles.NodeMouseClick += tvFolderFiles_NodeMouseClick;
             tvFolderFiles.NodeMouseDoubleClick += tvFolderFiles_NodeMouseDoubleClick;
@@ -759,9 +804,9 @@
             // 
             eeCodeView.Dock = DockStyle.Fill;
             eeCodeView.Location = new Point(0, 0);
-            eeCodeView.Margin = new Padding(16, 12, 16, 12);
+            eeCodeView.Margin = new Padding(7, 6, 7, 6);
             eeCodeView.Name = "eeCodeView";
-            eeCodeView.Size = new Size(1109, 893);
+            eeCodeView.Size = new Size(494, 459);
             eeCodeView.TabIndex = 0;
             // 
             // CodeViewMenuStrip
@@ -769,13 +814,13 @@
             CodeViewMenuStrip.ImageScalingSize = new Size(40, 40);
             CodeViewMenuStrip.Items.AddRange(new ToolStripItem[] { openToolStripMenuItem });
             CodeViewMenuStrip.Name = "CodeViewMenuStrip";
-            CodeViewMenuStrip.Size = new Size(173, 50);
+            CodeViewMenuStrip.Size = new Size(198, 28);
             // 
             // openToolStripMenuItem
             // 
             openToolStripMenuItem.Name = "openToolStripMenuItem";
-            openToolStripMenuItem.Size = new Size(172, 46);
-            openToolStripMenuItem.Text = "Open";
+            openToolStripMenuItem.Size = new Size(197, 24);
+            openToolStripMenuItem.Text = "外部エディターで開く";
             // 
             // bwLoadCards
             // 
@@ -784,59 +829,15 @@
             bwLoadCards.ProgressChanged += bwLoadCards_ProgressChanged;
             bwLoadCards.RunWorkerCompleted += bwLoadCards_RunWorkerCompleted;
             // 
-            // button2
-            // 
-            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button2.Location = new Point(418, 363);
-            button2.Margin = new Padding(2, 4, 2, 4);
-            button2.Name = "button2";
-            button2.Size = new Size(76, 57);
-            button2.TabIndex = 20;
-            button2.Text = "↓";
-            button2.UseVisualStyleBackColor = true;
-            // 
-            // button3
-            // 
-            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button3.Location = new Point(334, 363);
-            button3.Margin = new Padding(2, 4, 2, 4);
-            button3.Name = "button3";
-            button3.Size = new Size(76, 57);
-            button3.TabIndex = 19;
-            button3.Text = "↑";
-            button3.UseVisualStyleBackColor = true;
-            // 
-            // button4
-            // 
-            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button4.Location = new Point(215, 363);
-            button4.Margin = new Padding(2, 4, 2, 4);
-            button4.Name = "button4";
-            button4.Size = new Size(108, 57);
-            button4.TabIndex = 18;
-            button4.Text = "削除";
-            button4.UseVisualStyleBackColor = true;
-            // 
-            // button5
-            // 
-            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            button5.Location = new Point(105, 363);
-            button5.Margin = new Padding(2, 4, 2, 4);
-            button5.Name = "button5";
-            button5.Size = new Size(104, 57);
-            button5.TabIndex = 17;
-            button5.Text = "追加";
-            button5.UseVisualStyleBackColor = true;
-            // 
             // EOProcesser
             // 
-            AutoScaleDimensions = new SizeF(18F, 39F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1692, 1028);
+            ClientSize = new Size(752, 527);
             Controls.Add(tabControl);
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
-            Margin = new Padding(9, 8, 9, 8);
+            Margin = new Padding(4);
             Name = "EOProcesser";
             Text = "ERAOCG Card Manager v1.0.0 by JoyJ";
             Load += EOProcesser_Load;
