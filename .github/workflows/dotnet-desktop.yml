@@ -8,6 +8,9 @@
 
 name: EOProcesser Build
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ "master" ]
