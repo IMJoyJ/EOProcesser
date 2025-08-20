@@ -102,9 +102,9 @@ namespace EOProcesser
         }
         private void ParentAddCodeBeforeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (treeCodeTree.SelectedNode != null && treeCodeTree.SelectedNode.Parent != null)
+            if (treeCodeTree.SelectedNode != null)
             {
-                ERACodeGenericLine line = new("");
+                ERACodeCommentLine line = new("（新しい行）");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
                 int index = treeCodeTree.SelectedNode.Index;
                 TreeNode parent = treeCodeTree.SelectedNode.Parent;
@@ -112,14 +112,21 @@ namespace EOProcesser
                 // Insert before the selected node
                 foreach (var node in newNodes)
                 {
-                    parent.Nodes.Insert(index, node);
+                    if (parent != null)
+                    {
+                        parent.Nodes.Insert(index, node);
+                    }
+                    else
+                    {
+                        treeCodeTree.Nodes.Insert(index, node);
+                    }
                 }
             }
         }
 
         private void ParentAddCodeAfterToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (treeCodeTree.SelectedNode != null && treeCodeTree.SelectedNode.Parent != null)
+            if (treeCodeTree.SelectedNode != null)
             {
                 ERACodeGenericLine line = new("");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
@@ -129,7 +136,14 @@ namespace EOProcesser
                 // Insert after the selected node
                 foreach (var node in newNodes)
                 {
-                    parent.Nodes.Insert(index++, node);
+                    if (parent != null)
+                    {
+                        parent.Nodes.Insert(index++, node);
+                    }
+                    else
+                    {
+                        treeCodeTree.Nodes.Insert(index++, node);
+                    }
                 }
             }
         }
@@ -224,8 +238,10 @@ namespace EOProcesser
             TextHasChanged = false;
         }
 
+        public event EventHandler? OnSave;
         private void btnSave_Click(object sender, EventArgs e)
         {
+            TextHasChanged = false;
             var codes = ERACodeAnalyzer.AnalyzeCode(txtCode.Text);
             List<TreeNode> nodes = codes.GetTreeNodes();
 
@@ -242,19 +258,22 @@ namespace EOProcesser
                     {
                         parentNode.Nodes.Insert(index++, node);
                     }
-
                     // 更新父节点及其所有上级节点的Tag属性
                     RefreshParentNodesTags(parentNode);
                 }
                 else
                 {
-                    treeCodeTree.Nodes.Clear();
-                    treeCodeTree.Nodes.AddRange([.. nodes]);
+                    foreach (var node in nodes)
+                    {
+                        treeCodeTree.Nodes.Insert(index++, node);
+                    }
                 }
 
                 treeCodeTree.SelectedNode = nodes[0];
                 EditCodeToolStripMenuItem_Click(sender, e);
             }
+            
+            OnSave?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
