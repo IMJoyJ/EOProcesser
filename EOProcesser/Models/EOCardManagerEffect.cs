@@ -13,12 +13,12 @@ namespace EOProcesser
         public static EOCardManagerCardEffect Parse(ERAOCGCard card)
         {
             EOCardManagerCardEffect result = [];
-            result.Id = card.Id.ToString();
+            result.Id = card.CardId.ToString();
 
             // 1. 处理说明文本，根据CALLFORM CARD_ABLE行分割效果
             var explanationFunc = card.GetCardExplanationFunc() ??
                 throw new InvalidOperationException
-                ($"Card {card.Id} does not have an explanation function");
+                ($"Card {card.CardId} does not have an explanation function");
             
             List<EOCardManagerEffect> effects = [];
             List<ERACode> currentDescriptionLines = [];
@@ -39,9 +39,14 @@ namespace EOProcesser
                         result.IsRogue = true;
                         continue;
                     }
+                    // 检查是否是函数定义
+                    if (line.Trim().StartsWith('@'))
+                    {
+                        continue;
+                    }
                     
                     // 检查是否是CALLFORM CARD_ABLE行
-                    if (line.Contains("CALLFORM CARD_ABLE"))
+                    if (line.Contains("CALLFORM CARD_ABLE") || line.Contains("CALL CARD_ABLE"))
                     {
                         // 如果已经找到第一个CALLFORM，则创建新效果
                         if (hasFoundFirstCallform)
@@ -52,7 +57,7 @@ namespace EOProcesser
                                 effects.Add(new EOCardManagerEffect(
                                     currentEffectNo,
                                     currentDescriptionLines));
-                                
+
                                 currentDescriptionLines = [];
                                 consecutiveNumberedLines = 0;
                             }
@@ -64,7 +69,7 @@ namespace EOProcesser
                             currentDescriptionLines = [];
                             hasFoundFirstCallform = true;
                         }
-                        
+
                         // 添加当前CALLFORM行到新效果的描述中
                         currentDescriptionLines.Add(code);
                         continue;
@@ -198,33 +203,24 @@ namespace EOProcesser
             
             // 効果文定義（DescriptionDefinition）
             TreeNode descDefNode = new("効果文定義") { Tag = DescriptionDefinition };
-            foreach (var code in DescriptionDefinition)
-            {
-                descDefNode.Nodes.Add(new TreeNode(code.ToString()) { Tag = code });
-            }
+            descDefNode.Nodes.AddRange([.. DescriptionDefinition.GetTreeNodes()]);
             rootNode.Nodes.Add(descDefNode);
             
             // 効果可用性定義（CanDefinition）
             TreeNode canDefNode = new("効果可用性定義") { Tag = CanDefinition };
-            foreach (var code in CanDefinition)
-            {
-                canDefNode.Nodes.Add(new TreeNode(code.ToString()) { Tag = code });
-            }
+            canDefNode.Nodes.AddRange([.. CanDefinition.GetTreeNodes()]);
             rootNode.Nodes.Add(canDefNode);
             
             // 効果関数定義（EffectDefinition）
             TreeNode effectDefNode = new("効果関数定義") { Tag = EffectDefinition };
-            foreach (var code in EffectDefinition)
-            {
-                effectDefNode.Nodes.Add(new TreeNode(code.ToString()) { Tag = code });
-            }
+            effectDefNode.Nodes.AddRange([.. EffectDefinition.GetTreeNodes()]);
             rootNode.Nodes.Add(effectDefNode);
             
             // 追加関数（ExtraFuncs）
             TreeNode extraFuncsNode = new("追加関数") { Tag = ExtraFuncs };
             foreach (var func in ExtraFuncs)
             {
-                extraFuncsNode.Nodes.Add(new TreeNode(func.FuncName) { Tag = func });
+                extraFuncsNode.Nodes.AddRange([.. func.GetTreeNodes()]);
             }
             rootNode.Nodes.Add(extraFuncsNode);
             
@@ -236,11 +232,17 @@ namespace EOProcesser
                 effectsListNode.Nodes.AddRange(effect.GetTreeNodes());
             }
             rootNode.Nodes.Add(effectsListNode);
+            rootNode.Expand();
+            effectsListNode.Expand();
+            foreach (TreeNode node in effectsListNode.Nodes)
+            {
+                node.Expand();
+            }
             
             return [rootNode];
         }
 
-        private static void ProcessFunctionSegment(ERACodeFuncSegment func, List<EOCardManagerEffect> effects, List<ERACode> prefixCodes, bool isCan)
+        private static void ProcessFunctionSegment(ERACodeFuncSegment func, List<EOCardManagerEffect> effects, ERACodeMultiLines prefixCodes, bool isCan)
         {
             // 查找IF语句
             var ifSegments = func.Where(c => c is ERACodeIfSegment).Cast<ERACodeIfSegment>().ToList();
@@ -264,6 +266,12 @@ namespace EOProcesser
             bool foundIf = false;
             foreach (var code in func)
             {
+                // 检查是否是函数定义
+                if (code.ToString().Trim().StartsWith('@'))
+                {
+                    continue;
+                }
+
                 if (code is ERACodeIfSegment)
                 {
                     foundIf = true;
@@ -332,11 +340,11 @@ namespace EOProcesser
         }
 
         public bool IsRogue = false;
-        List<ERACode> EffectDefinition = [];
-        List<ERACode> CanDefinition = [];
-        public List<ERACode> DescriptionDefinition = [];
+        ERACodeMultiLines EffectDefinition = [];
+        ERACodeMultiLines CanDefinition = [];
+        public ERACodeMultiLines DescriptionDefinition = [];
         private readonly List<EOCardManagerEffect> effects = [];
-        HashSet<ERACodeFuncSegment> ExtraFuncs = [];
+        List<ERACodeFuncSegment> ExtraFuncs = [];
         public string Id = "";
 
         public const string NumString = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿";
@@ -480,7 +488,7 @@ namespace EOProcesser
     public class EOCardManagerEffect(string? effectNo = "", IEnumerable<ERACode>? desc = null, string? condition = null, IEnumerable<ERACode>? canFuncs = null, IEnumerable<ERACode>? effectFuncs = null)
     {
         //効果文
-        public List<ERACode> Descriptions = [.. desc ?? []];
+        public ERACodeMultiLines Descriptions = [.. desc ?? []];
         public string? Condition = condition;
         
         public ERACodeMultiLines CanFuncs = [.. canFuncs ?? []];
@@ -566,7 +574,7 @@ namespace EOProcesser
             TreeNode rootNode = new(displayText) { Tag = this };
 
             // 添加条件子节点
-            TreeNode conditionNode = new($"条件: {Condition ?? "(無し)"}")
+            TreeNode conditionNode = new($"条件: {(string.IsNullOrWhiteSpace(Condition) ? "(無し)" : Condition)}")
             {
                 Tag = Condition
             };
@@ -574,26 +582,17 @@ namespace EOProcesser
 
             // 添加效果描述子节点
             TreeNode descNode = new("効果文") { Tag = Descriptions };
-            foreach (var desc in Descriptions)
-            {
-                descNode.Nodes.Add(new TreeNode(desc.ToString()) { Tag = desc });
-            }
+            descNode.Nodes.AddRange([.. Descriptions.GetTreeNodes()]);
             rootNode.Nodes.Add(descNode);
 
             // 添加Can函数子节点
             TreeNode canFuncNode = new("効果可用性") { Tag = CanFuncs };
-            foreach (var func in CanFuncs)
-            {
-                canFuncNode.Nodes.AddRange([.. func.GetTreeNodes()]);
-            }
+            canFuncNode.Nodes.AddRange([.. CanFuncs.GetTreeNodes()]);
             rootNode.Nodes.Add(canFuncNode);
 
             // 添加Effect函数子节点
             TreeNode effectFuncNode = new("効果関数") { Tag = EffectFuncs };
-            foreach (var func in EffectFuncs)
-            {
-                effectFuncNode.Nodes.AddRange([.. func.GetTreeNodes()]);
-            }
+            effectFuncNode.Nodes.AddRange([.. EffectFuncs.GetTreeNodes()]);
             rootNode.Nodes.Add(effectFuncNode);
 
             return [rootNode];
