@@ -257,7 +257,10 @@ namespace EOProcesser
             {
                 foreach (var code in func)
                 {
-                    prefixCodes.Add(code);
+                    if (!code.ToString().Trim().StartsWith('@'))
+                    {
+                        prefixCodes.Add(code);
+                    }
                 }
                 return;
             }
