@@ -138,7 +138,7 @@ namespace EOProcesser
                         if (int.TryParse(lastPart, out int cardCode))
                         {
                             // Check if card with this code doesn't already exist
-                            if (!Cards.Any(c => c.Id == cardCode))
+                            if (!Cards.Any(c => c.CardId == cardCode))
                             {
                                 try
                                 {
@@ -185,15 +185,27 @@ namespace EOProcesser
             return null;
         }
 
-        public List<TreeNode> GetTreeNode()
+        public List<TreeNode> GetTreeNodes()
         {
             List<TreeNode> list = [];
             foreach (var card in Cards)
             {
-                list.AddRange(card.GetTreeNode());
+                list.AddRange(card.GetTreeNodes());
             }
             return [new TreeNode(new FileInfo(this.ScriptFile).Name,
                     [.. list]) { Tag = this } ];
+        }
+
+        internal void Save(EOCardManagerCardEffect effects)
+        {
+            StringBuilder sb = new();
+            foreach(var card in Cards)
+            {
+                string id = card.CardId.ToString();
+                sb.AppendLine($"""
+                @CARDNAME_{id},参照先
+                """);
+            }
         }
     }
     public class ERAOCGCard
@@ -202,27 +214,27 @@ namespace EOProcesser
         public string Name;
         public string ShortName;
         public List<string> Categories = [];
-        public int Id = -1;
+        public int CardId = -1;
         public ERACodeFuncSegment GetCardNameFunc() =>
-            CardScript.GetFunc($"CARDNAME_{Id}") ?? InitCardNameFunc();
+            CardScript.GetFunc($"CARDNAME_{CardId}") ?? InitCardNameFunc();
         public ERACodeFuncSegment GetCardInfoFunc() =>
-            CardScript.GetFunc($"CARD_{Id}") ?? InitCardInfoFunc();
+            CardScript.GetFunc($"CARD_{CardId}") ?? InitCardInfoFunc();
         public ERACodeFuncSegment GetCardExplanationFunc() =>
-            CardScript.GetFunc($"CARD_EXPLANATION_{Id}") ?? InitCardExplanationFunc();
+            CardScript.GetFunc($"CARD_EXPLANATION_{CardId}") ?? InitCardExplanationFunc();
         public ERACodeFuncSegment GetCardCanFunc() =>
-            CardScript.GetFunc($"CARDCAN_{Id}") ?? InitCardCanFunc();
+            CardScript.GetFunc($"CARDCAN_{CardId}") ?? InitCardCanFunc();
         public ERACodeFuncSegment GetCardAAFunc() =>
-            CardScript.GetFunc($"CARDSUMMON_AA_{Id}") ?? InitCardAAFunc();
+            CardScript.GetFunc($"CARDSUMMON_AA_{CardId}") ?? InitCardAAFunc();
         public ERACodeFuncSegment GetCardEffectFunc() =>
-            CardScript.GetFunc($"CARDEFFECT_{Id}") ?? InitCardEffectFunc();
+            CardScript.GetFunc($"CARDEFFECT_{CardId}") ?? InitCardEffectFunc();
 
         private ERACodeFuncSegment InitCardNameFunc()
         {
-            var func = CardScript.GetFunc($"CARDNAME_{Id}");
+            var func = CardScript.GetFunc($"CARDNAME_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARDNAME_{Id},参照先
+                    @CARDNAME_{CardId},参照先
                     ;ココで指定カードの名前、略称を返す予定
                     #DIMS DYNAMIC 参照先
 
@@ -246,11 +258,11 @@ namespace EOProcesser
 
         private ERACodeFuncSegment InitCardInfoFunc()
         {
-            var func = CardScript.GetFunc($"CARD_{Id}");
+            var func = CardScript.GetFunc($"CARD_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARD_{Id}(参照先)
+                    @CARD_{CardId}(参照先)
 
                     #DIMS DYNAMIC 参照先
                     VARSET RESULT
@@ -285,11 +297,11 @@ namespace EOProcesser
 
         private ERACodeFuncSegment InitCardExplanationFunc()
         {
-            var func = CardScript.GetFunc($"CARD_EXPLANATION_{Id}");
+            var func = CardScript.GetFunc($"CARD_EXPLANATION_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARD_EXPLANATION_{Id}(種類)
+                    @CARD_EXPLANATION_{CardId}(種類)
                     #DIM DYNAMIC 種類
 
                     CALL TEXT_DECORATION("DUELIST")
@@ -303,11 +315,11 @@ namespace EOProcesser
 
         private ERACodeFuncSegment InitCardAAFunc()
         {
-            var func = CardScript.GetFunc($"CARDSUMMON_AA_{Id}");
+            var func = CardScript.GetFunc($"CARDSUMMON_AA_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARDSUMMON_AA_{Id}
+                    @CARDSUMMON_AA_{CardId}
                     RETURN 0
                     """);
                 func = lines.First((a) => (a is ERACodeFuncSegment)) as ERACodeFuncSegment;
@@ -318,17 +330,17 @@ namespace EOProcesser
 
         private ERACodeFuncSegment InitCardCanFunc()
         {
-            var func = CardScript.GetFunc($"CARDCAN_{Id}");
+            var func = CardScript.GetFunc($"CARDCAN_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARDCAN_{Id}(決闘者,種類,ゾーン,場所)
+                    @CARDCAN_{CardId}(決闘者,種類,ゾーン,場所)
                     #DIMS DYNAMIC 決闘者
                     #DIMS DYNAMIC ゾーン
                     #DIM DYNAMIC 種類
                     #DIM DYNAMIC 場所
 
-                    CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,{Id})
+                    CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,{CardId})
                     SIF RESULT == 1
                         RETURN 0
                     """);
@@ -340,11 +352,11 @@ namespace EOProcesser
 
         private ERACodeFuncSegment InitCardEffectFunc()
         {
-            var func = CardScript.GetFunc($"CARDEFFECT_{Id}");
+            var func = CardScript.GetFunc($"CARDEFFECT_{CardId}");
             if (func == null)
             {
                 var lines = ERACodeAnalyzer.AnalyzeCode($"""
-                    @CARDEFFECT_{Id}(決闘者,種類,ゾーン,場所)
+                    @CARDEFFECT_{CardId}(決闘者,種類,ゾーン,場所)
                     #DIMS DYNAMIC 決闘者
                     #DIMS DYNAMIC 対面者 
                     #DIMS DYNAMIC ゾーン
@@ -380,7 +392,7 @@ namespace EOProcesser
 
                 // 使用正则表达式确保ID是全字匹配的
                 // 检查函数名是否包含完整的卡片ID（作为一个完整的单词）
-                string idPattern = $@"(^|[^0-9])({Id})([^0-9]|$)";
+                string idPattern = $@"(^|[^0-9])({CardId})([^0-9]|$)";
                 if (Regex.IsMatch(actualFuncName, idPattern))
                 {
                     // 跳过包含该卡片ID的函数，这些函数应该已经由特定的getter处理
@@ -419,7 +431,7 @@ namespace EOProcesser
         public ERAOCGCard(ERAOCGCardScript script, int cardId)
         {
             CardScript = script;
-            Id = cardId;
+            CardId = cardId;
             var nameFunc = GetCardNameFunc();
             if (nameFunc == null)
             {
@@ -450,9 +462,9 @@ namespace EOProcesser
 
         override public string ToString()
         {
-            return $"[{Id}]{Name}";
+            return $"[{CardId}]{Name}";
         }
-        public List<TreeNode> GetTreeNode()
+        public List<TreeNode> GetTreeNodes()
         {
             return [new(ToString()) { Tag = this }];
         }
