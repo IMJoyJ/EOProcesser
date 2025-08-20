@@ -52,6 +52,15 @@ namespace EOProcesser
             TextHasChanged = false;
             btnSaveFile.Visible = (CurrentFile != null);
         }
+        public string GetCodeString()
+        {
+            StringBuilder sb = new();
+            foreach(TreeNode node in treeCodeTree.Nodes)
+            {
+                sb.AppendLine(node.Tag.ToString());
+            }
+            return sb.ToString();
+        }
         public string? CurrentFile = null;
         public void LoadCodeFromFile(string file)
         {
@@ -64,7 +73,7 @@ namespace EOProcesser
             StringBuilder sb = new();
             foreach (TreeNode node in treeCodeTree.Nodes)
             {
-                sb.Append(node.Tag.ToString());
+                sb.AppendLine(node.Tag.ToString());
             }
         }
         public void SaveToFile()
@@ -328,20 +337,44 @@ namespace EOProcesser
             if (selectedNode == null)
             {
                 // If no node is selected, add to the root
-                ERACodeGenericLine line = new("");
+                ERACodeCommentLine line = new("新しい行");
                 treeCodeTree.Nodes.AddRange([.. line.GetTreeNodes()]);
             }
             else if (selectedNode.Tag is ERABlockSegment)
             {
-                // Add as a child if the selected node is a block
-                ERACodeGenericLine line = new("");
-                selectedNode.Nodes.AddRange([.. line.GetTreeNodes()]);
-                selectedNode.Expand();
+                // Ask whether to add as a child or as a sibling
+                DialogResult addTypeResult = MessageBox.Show(
+                    "新しい行を子要素として追加しますか？\n「いいえ」を選択すると、同じ階層に追加されます。",
+                    "追加方法の選択",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (addTypeResult == DialogResult.Yes)
+                {
+                    // Add as a child
+                    ERACodeCommentLine line = new("新しい行");
+                    selectedNode.Nodes.AddRange([.. line.GetTreeNodes()]);
+                    selectedNode.Expand();
+                }
+                else
+                {
+                    // Add as a sibling after the selected node
+                    ERACodeCommentLine line = new("新しい行");
+                    TreeNode[] newNodes = [.. line.GetTreeNodes()];
+                    int index = selectedNode.Index + 1;
+                    TreeNode parent = selectedNode.Parent;
+
+                    foreach (var node in newNodes)
+                    {
+                        parent.Nodes.Insert(index++, node);
+                    }
+                    RefreshParentNodesTags(parent);
+                }
             }
             else if (selectedNode.Parent != null)
             {
                 // Add after the selected node if it's not a block
-                ERACodeGenericLine line = new("");
+                ERACodeCommentLine line = new("新しい行");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
                 int index = selectedNode.Index + 1;
                 TreeNode parent = selectedNode.Parent;
@@ -349,9 +382,20 @@ namespace EOProcesser
                 foreach (var node in newNodes)
                 {
                     parent.Nodes.Insert(index++, node);
-        }
-                
+                }
                 RefreshParentNodesTags(parent);
+            }
+            else
+            {
+                // Add after the selected node if it's a root node
+                ERACodeCommentLine line = new("新しい行");
+                TreeNode[] newNodes = [.. line.GetTreeNodes()];
+                int index = selectedNode.Index + 1;
+
+                foreach (var node in newNodes)
+                {
+                    treeCodeTree.Nodes.Insert(index++, node);
+                }
             }
         }
 
@@ -381,17 +425,27 @@ namespace EOProcesser
         private void btnNodeMoveUp_Click(object sender, EventArgs e)
         {
             TreeNode selectedNode = treeCodeTree.SelectedNode;
-            if (selectedNode != null && selectedNode.Parent != null)
+            if (selectedNode != null)
             {
                 TreeNode parent = selectedNode.Parent;
                 int index = selectedNode.Index;
                 
                 if (index > 0)
                 {
-                    parent.Nodes.RemoveAt(index);
-                    parent.Nodes.Insert(index - 1, selectedNode);
-                    treeCodeTree.SelectedNode = selectedNode;
-                    RefreshParentNodesTags(parent);
+                    if (parent != null)
+                    {
+                        parent.Nodes.RemoveAt(index);
+                        parent.Nodes.Insert(index - 1, selectedNode);
+                        treeCodeTree.SelectedNode = selectedNode;
+                    }
+                    else
+                    {
+                        // Handle root level nodes
+                        treeCodeTree.Nodes.RemoveAt(index);
+                        treeCodeTree.Nodes.Insert(index - 1, selectedNode);
+                        treeCodeTree.SelectedNode = selectedNode;
+                    }
+                    RefreshParentNodesTags(selectedNode);
                 }
             }
         }
@@ -399,17 +453,31 @@ namespace EOProcesser
         private void btnNodeMoveDown_Click(object sender, EventArgs e)
         {
             TreeNode selectedNode = treeCodeTree.SelectedNode;
-            if (selectedNode != null && selectedNode.Parent != null)
+            if (selectedNode != null)
             {
                 TreeNode parent = selectedNode.Parent;
                 int index = selectedNode.Index;
                 
-                if (index < parent.Nodes.Count - 1)
+                if (parent != null)
                 {
-                    parent.Nodes.RemoveAt(index);
-                    parent.Nodes.Insert(index + 1, selectedNode);
-                    treeCodeTree.SelectedNode = selectedNode;
-                    RefreshParentNodesTags(parent);
+                    if (index < parent.Nodes.Count - 1)
+                    {
+                        parent.Nodes.RemoveAt(index);
+                        parent.Nodes.Insert(index + 1, selectedNode);
+                        treeCodeTree.SelectedNode = selectedNode;
+                        RefreshParentNodesTags(parent);
+                    }
+                }
+                else
+                {
+                    // Handle root level nodes
+                    if (index < treeCodeTree.Nodes.Count - 1)
+                    {
+                        treeCodeTree.Nodes.RemoveAt(index);
+                        treeCodeTree.Nodes.Insert(index + 1, selectedNode);
+                        treeCodeTree.SelectedNode = selectedNode;
+                        RefreshParentNodesTags(selectedNode);
+                    }
                 }
             }
         }
