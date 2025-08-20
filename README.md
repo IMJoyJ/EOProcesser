@@ -1,8 +1,17 @@
-# EOProcesser
+# ERAOCG AIO Manager
 
 ## 概要
 
-EOProcesserは、ERAスクリプトファイル（.erb）を処理するためのWindowsアプリケーションです。特にERAOCGカードスクリプトの閲覧、編集、分析に特化しています。
+ERAOCG AIO Managerは、ERAスクリプトファイル（.erb）を処理するためのWindowsアプリケーションです。
+特にERAOCGカードスクリプトの閲覧、編集、分析に特化しています。
+
+## ロードマップ
+
+- [x] スクリプト編集
+- [x] カードスクリプト編集
+- [ ] デッキ編集
+- [ ] キャラクター編集
+
 
 ## 機能
 
