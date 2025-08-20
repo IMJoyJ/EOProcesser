@@ -195,18 +195,6 @@ namespace EOProcesser
             return [new TreeNode(new FileInfo(this.ScriptFile).Name,
                     [.. list]) { Tag = this } ];
         }
-
-        internal void Save(EOCardManagerCardEffect effects)
-        {
-            StringBuilder sb = new();
-            foreach(var card in Cards)
-            {
-                string id = card.CardId.ToString();
-                sb.AppendLine($"""
-                @CARDNAME_{id},参照先
-                """);
-            }
-        }
     }
     public class ERAOCGCard
     {
