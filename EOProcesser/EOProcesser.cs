@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EOProcesser.Settings;
 using System.Reflection.Emit;
+using System.Text;
 
 namespace EOProcesser
 {
@@ -1283,10 +1284,10 @@ namespace EOProcesser
                 {
                     // Remove from the script's card collection
                     CurrentCardScript.Cards.Remove(selectedCard);
-                    
+
                     // Remove from the list view
                     listCardScriptCard.Items.Remove(selectedCard);
-                    
+
                     // If the tree view is showing this card, find and remove its node
                     if (CurrentEditingTreeNode != null)
                     {
@@ -1300,7 +1301,7 @@ namespace EOProcesser
                             }
                         }
                     }
-                    
+
                     // Clear the editing fields if we were editing this card
                     if (CurrentCard == selectedCard)
                     {
@@ -1387,19 +1388,383 @@ namespace EOProcesser
 
         private void SaveCurrentCard()
         {
-            if (CurrentCardScript == null)
+            StringBuilder sb = new();
+            if (CurrentCardScript == null || CurrentCard == null)
             {
                 return;
             }
-            if (radioCMStandardEffect.Checked && CurrentCMEffects != null)
+            foreach (var card in CurrentCardScript.Cards)
             {
-                CurrentCardScript.Save(CurrentCMEffects);
-            }
-            else
-            {
-                
+                if (CurrentCard.CardId == card.CardId)
+                {
+                    //Card Name
+                    sb.AppendLine($"""
+                    {GetCardNameScriptFromForm()}
+                    {GetCardInfoScriptFromForm()}
+                    {GetAllEffectContent()}
+                    {GetCardAAScriptFromForm()}
+                    """);
+
+                    string GetAllEffectContent()
+                    {
+                        if (radioCMStandardEffect.Checked
+                            && treeCardEffectList.Nodes.Count > 0
+                            && treeCardEffectList.Nodes[0].Tag is EOCardManagerCardEffect effects)
+                        {
+                            return effects.GetAllEffectFuncContent();
+                        }
+                        else
+                        {
+                            return $"""
+                            {GetCardExplanationScriptFromForm()}
+                            {GetCardCanScriptFromForm()}
+                            {GetCardEffectScriptFromForm()}
+                            {GetCardExtraScriptFromForm()}
+                            """;
+                        }
+                    }
+
+                    string GetCardNameScriptFromForm()
+                    {
+                        StringBuilder categories = new();
+                        int i = 0;
+                        foreach (var c in listCategory.Items)
+                        {
+                            categories.AppendLine($"        RESULTS:{i} = {c}");
+                        }
+                        return $"""
+                        @CARDNAME_{CurrentCard.CardId},参照先
+                        ;ココで指定カードの名前、略称を返す予定
+                        #DIMS DYNAMIC 参照先
+
+                        VARSET RESULT
+                        VARSET RESULTS
+
+                        SELECTCASE 参照先
+                            CASE "名前"
+                                RESULTS = {txtCardName.Text}
+                            CASE "略称"
+                                RESULTS = {txtShortName.Text}
+                            CASE "カテゴリ"
+                        {categories}
+                        ENDSELECT
+
+                        """;
+                    }
+                    string GetCardInfoScriptFromForm()
+                    {
+                        ERACodeSelectCase sc = new("参照先");
+                        foreach (ERACodeSelectCaseSubCaseListItem item in listCardInfo.Items)
+                        {
+                            sc.AddCase(item.CaseValue);
+                        }
+                        return $"""
+                        @CARD_{CurrentCard.CardId}(参照先)
+
+                        #DIMS DYNAMIC 参照先
+                        VARSET RESULT
+                        VARSET RESULTS
+
+                        {sc}
+
+                        RETURN 0
+
+                        """;
+                    }
+                    string GetCardAAScriptFromForm()
+                    {
+                        var str = eeCardSummonAA.GetCodeString();
+                        if (string.IsNullOrWhiteSpace(str))
+                        {
+                            return $"""
+                            @CARDSUMMON_AA_{CurrentCard!.CardId}
+                                RETURN 0
+                            
+                            """;
+                        }
+                        return str;
+                    }
+                    string GetCardExplanationScriptFromForm()
+                    {
+                        var str = eeCardExplanation.GetCodeString();
+                        if (string.IsNullOrWhiteSpace(str))
+                        {
+                            return $"""
+                            @CARD_EXPLANATION_{CurrentCard.CardId}(種類)
+                                PRINTL 
+
+                            """;
+                        }
+                        return str;
+                    }
+                    string GetCardCanScriptFromForm()
+                    {
+                        var str = eeCardCan.GetCodeString();
+                        if (string.IsNullOrWhiteSpace(str))
+                        {
+                            return $"""
+                                @CARDCAN_{CurrentCard.CardId}(決闘者,種類,ゾーン,場所)
+                                #DIMS DYNAMIC 決闘者
+                                #DIMS DYNAMIC ゾーン
+                                #DIM DYNAMIC 種類
+                                #DIM DYNAMIC 場所
+
+                                CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,2585)
+                                SIF RESULT == 1
+                                    RETURN 0
+                                
+                            """;
+                        }
+                        return str;
+                    }
+                    string GetCardEffectScriptFromForm()
+                    {
+                        var str = eeCardEffect.GetCodeString();
+                        if (string.IsNullOrWhiteSpace(str))
+                        {
+                            return $"""
+                            @CARDEFFECT_{CurrentCard.CardId}(決闘者,種類,ゾーン,場所)
+                                #DIMS DYNAMIC 決闘者
+                                #DIMS DYNAMIC 対面者
+                                #DIMS DYNAMIC ゾーン
+                                #DIM DYNAMIC 種類
+                                #DIM DYNAMIC 場所
+                                #DIM DYNAMIC カウンタ
+                                #DIM DYNAMIC 攻撃力修正
+
+                                CALL 対面者判定(決闘者)
+                                対面者 = %RESULTS%
+                            
+                            """;
+                        }
+                        return str;
+                    }
+                    string GetCardExtraScriptFromForm()
+                    {
+                        return "";
+                    }
+                }
+                else
+                {
+                    sb.AppendLine(card.GetCardNameFunc().ToString());
+                    sb.AppendLine(card.GetCardInfoFunc().ToString());
+                    sb.AppendLine(card.GetCardAAFunc().ToString());
+                    sb.AppendLine(card.GetCardExplanationFunc().ToString());
+                    sb.AppendLine(card.GetCardCanFunc().ToString());
+                    sb.AppendLine(card.GetCardEffectFunc().ToString());
+                }
             }
         }
 
+        private void btnAddCategory_Click(object sender, EventArgs e)
+        {
+            string newCategory = Microsoft.VisualBasic.Interaction.InputBox(
+                "新しいカテゴリを入力してください:", "カテゴリ追加", "");
+
+            if (!string.IsNullOrEmpty(newCategory))
+            {
+                // Check if the category already exists
+                if (!listCategory.Items.Contains(newCategory))
+                {
+                    listCategory.Items.Add(newCategory);
+                }
+                else
+                {
+                    MessageBox.Show("このカテゴリは既に存在します。", "警告",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        private void btnRemoveCategory_Click(object sender, EventArgs e)
+        {
+            if (listCategory.SelectedIndex != -1)
+            {
+                if (MessageBox.Show("選択したカテゴリを削除してもよろしいですか？", "カテゴリの削除",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    listCategory.Items.RemoveAt(listCategory.SelectedIndex);
+                }
+            }
+            else
+            {
+                MessageBox.Show("削除するカテゴリを選択してください。", "警告",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnMoveUpCategory_Click(object sender, EventArgs e)
+        {
+            if (listCategory.SelectedItem != null)
+            {
+                int selectedIndex = listCategory.SelectedIndex;
+                if (selectedIndex > 0)
+                {
+                    // Get the selected item
+                    object selectedItem = listCategory.SelectedItem;
+
+                    // Remove it from the current position
+                    listCategory.Items.RemoveAt(selectedIndex);
+
+                    // Insert it at the new position
+                    listCategory.Items.Insert(selectedIndex - 1, selectedItem);
+
+                    // Keep the item selected
+                    listCategory.SelectedIndex = selectedIndex - 1;
+                }
+            }
+        }
+
+        private void btnMoveDownCategory_Click(object sender, EventArgs e)
+        {
+            if (listCategory.SelectedItem != null)
+            {
+                int selectedIndex = listCategory.SelectedIndex;
+                if (selectedIndex < listCategory.Items.Count - 1)
+                {
+                    // Get the selected item
+                    object selectedItem = listCategory.SelectedItem;
+
+                    // Remove it from the current position
+                    listCategory.Items.RemoveAt(selectedIndex);
+
+                    // Insert it at the new position
+                    listCategory.Items.Insert(selectedIndex + 1, selectedItem);
+
+                    // Keep the item selected
+                    listCategory.SelectedIndex = selectedIndex + 1;
+                }
+            }
+        }
+
+        private void btnEditCardInfoKey_Click(object sender, EventArgs e)
+        {
+            if (listCardInfo.SelectedItem is ERACodeSelectCaseSubCaseListItem selectedItem)
+            {
+                string key = Microsoft.VisualBasic.Interaction.InputBox(
+                    "キーを入力してください:", "カード情報の編集",
+                    selectedItem.CaseValue.CaseCondition?.TrimStart('"').TrimEnd('"') ?? "");
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    int selectedIndex = listCardInfo.SelectedIndex;
+                    listCardInfo.Items.RemoveAt(selectedIndex);
+                    listCardInfo.Items.Insert(selectedIndex,
+                        new ERACodeSelectCaseSubCaseListItem(
+                            new ERACodeSelectCaseSubCase($"\"{key}\"", selectedItem.CaseValue.GetValue() ?? "")));
+                    listCardInfo.SelectedIndex = selectedIndex;
+                }
+            }
+            else
+            {
+                MessageBox.Show("編集するカード情報を選択してください。", "警告",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnEditCardInfoValue_Click(object sender, EventArgs e)
+        {
+            if (listCardInfo.SelectedItem is ERACodeSelectCaseSubCaseListItem selectedItem)
+            {
+                string value = Microsoft.VisualBasic.Interaction.InputBox(
+                    "値を入力してください:", "カード情報の編集",
+                    selectedItem.CaseValue.GetValue() ?? "");
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    int selectedIndex = listCardInfo.SelectedIndex;
+                    listCardInfo.Items.RemoveAt(selectedIndex);
+                    listCardInfo.Items.Insert(selectedIndex,
+                        new ERACodeSelectCaseSubCaseListItem(
+                            new ERACodeSelectCaseSubCase(selectedItem.CaseValue.CaseCondition ?? @"", value)));
+                    listCardInfo.SelectedIndex = selectedIndex;
+                }
+            }
+            else
+            {
+                MessageBox.Show("編集するカード情報を選択してください。", "警告",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnAddCardInfo_Click(object sender, EventArgs e)
+        {
+            string key = Microsoft.VisualBasic.Interaction.InputBox(
+                "キーを入力してください:", "カード情報の追加", "");
+
+            if (!string.IsNullOrEmpty(key))
+            {
+                string value = Microsoft.VisualBasic.Interaction.InputBox(
+                    "値を入力してください:", "カード情報の追加", "");
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    listCardInfo.Items.Add(
+                        new ERACodeSelectCaseSubCaseListItem(
+                            new ERACodeSelectCaseSubCase($"\"{key}\"", value)));
+                }
+            }
+        }
+
+        private void btnDeleteCardInfo_Click(object sender, EventArgs e)
+        {
+            if (listCardInfo.SelectedIndex != -1)
+            {
+                if (MessageBox.Show("選択したカード情報を削除してもよろしいですか？", "カード情報の削除",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    listCardInfo.Items.RemoveAt(listCardInfo.SelectedIndex);
+                }
+            }
+            else
+            {
+                MessageBox.Show("削除するカード情報を選択してください。", "警告",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnMoveUpCardInfo_Click(object sender, EventArgs e)
+        {
+            if (listCardInfo.SelectedItem != null)
+            {
+                int selectedIndex = listCardInfo.SelectedIndex;
+                if (selectedIndex > 0)
+                {
+                    // Get the selected item
+                    object selectedItem = listCardInfo.SelectedItem;
+
+                    // Remove it from the current position
+                    listCardInfo.Items.RemoveAt(selectedIndex);
+
+                    // Insert it at the new position
+                    listCardInfo.Items.Insert(selectedIndex - 1, selectedItem);
+
+                    // Keep the item selected
+                    listCardInfo.SelectedIndex = selectedIndex - 1;
+                }
+            }
+        }
+
+        private void btnMoveDownCardInfo_Click(object sender, EventArgs e)
+        {
+            if (listCardInfo.SelectedItem != null)
+            {
+                int selectedIndex = listCardInfo.SelectedIndex;
+                if (selectedIndex < listCardInfo.Items.Count - 1)
+                {
+                    // Get the selected item
+                    object selectedItem = listCardInfo.SelectedItem;
+
+                    // Remove it from the current position
+                    listCardInfo.Items.RemoveAt(selectedIndex);
+
+                    // Insert it at the new position
+                    listCardInfo.Items.Insert(selectedIndex + 1, selectedItem);
+
+                    // Keep the item selected
+                    listCardInfo.SelectedIndex = selectedIndex + 1;
+                }
+            }
+        }
     }
 }
