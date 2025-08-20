@@ -145,6 +145,15 @@ namespace EOProcesser
         {
             return [.. codes.SelectMany(code => code.GetTreeNodes())];
         }
+
+        internal void Remove(ERACode code)
+        {
+            if (code == StartCode || code == EndCode)
+            {
+                return;
+            }
+            codes.Remove(code);
+        }
     }
 
     public class ERABlockSegment : ERACodeMultiLines
