@@ -24,7 +24,7 @@ jobs:
 
     env:
       Solution_Name: EOProcesser.sln
-      Project_Path: EOProcesser.csproj
+      Project_Path: EOProcesser\EOProcesser.csproj
 
     steps:
     - name: Checkout
