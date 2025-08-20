@@ -81,14 +81,44 @@ jobs:
         name: EOProcesser-${{ matrix.configuration }}-${{ matrix.publish_type }}
         path: output-${{ matrix.publish_type }}
 
-    # Create GitHub Release when a tag is pushed
+    # Upload zip as artifact for release job
+    - name: Upload zip for release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-zip-${{ matrix.publish_type }}
+        path: EOProcesser-${{ matrix.configuration }}-${{ matrix.publish_type }}.zip
+        retention-days: 1
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    # Download all zip artifacts
+    - name: Download standalone zip
+      uses: actions/download-artifact@v4
+      with:
+        name: release-zip-standalone
+        path: ./
+    
+    - name: Download framework-dependent zip
+      uses: actions/download-artifact@v4
+      with:
+        name: release-zip-framework-dependent
+        path: ./
+    
+    # Create GitHub Release
     - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/') && matrix.publish_type == 'standalone'
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          EOProcesser-${{ matrix.configuration }}-standalone.zip
-          EOProcesser-${{ matrix.configuration }}-framework-dependent.zip
+          EOProcesser-Release-standalone.zip
+          EOProcesser-Release-framework-dependent.zip
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
