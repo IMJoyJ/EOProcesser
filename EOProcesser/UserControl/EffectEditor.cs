@@ -23,6 +23,10 @@ namespace EOProcesser
             txtCode.Text = "";
             CurrentFile = null;
         }
+        public void ClearOnSaveEvent()
+        {
+            OnSave = null;
+        }
         public void LoadCode(ERACode code)
         {
             treeCodeTree.Nodes.Clear();
@@ -31,12 +35,24 @@ namespace EOProcesser
             txtCode.Enabled = false;
             TextHasChanged = false;
             CurrentFile = null;
-            btnSaveFile.Visible = false;
+            btnSaveFile.Text = CurrentFile == null ? "コード上書き" : "ファイル上書き";
             if (treeCodeTree.Nodes.Count > 0)
             {
                 treeCodeTree.SelectedNode = treeCodeTree.Nodes[0];
                 treeCodeTree_NodeMouseDoubleClick(this, new TreeNodeMouseClickEventArgs(treeCodeTree.SelectedNode, MouseButtons.Left, 1, 0, 0));
             }
+        }
+        public ERACodeMultiLines? GetCurrentCode()
+        {
+            ERACodeMultiLines lines = [];
+            foreach(TreeNode node in treeCodeTree.Nodes)
+            {
+                if(node.Tag is ERACode c)
+                {
+                    lines.Add(c);
+                }
+            }
+            return lines;
         }
         public void LoadCode(string str, bool isFile = false)
         {
@@ -113,7 +129,7 @@ namespace EOProcesser
         {
             if (treeCodeTree.SelectedNode != null)
             {
-                ERACodeCommentLine line = new("（新しい行）");
+                ERACodeCommentLine line = new(";新しい行");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
                 int index = treeCodeTree.SelectedNode.Index;
                 TreeNode parent = treeCodeTree.SelectedNode.Parent;
@@ -324,6 +340,7 @@ namespace EOProcesser
 
         private void btnSaveFile_Click(object sender, EventArgs e)
         {
+            OnSave?.Invoke(sender, e);
             if (CurrentFile != null)
             {
                 SaveToFile();
@@ -337,7 +354,7 @@ namespace EOProcesser
             if (selectedNode == null)
             {
                 // If no node is selected, add to the root
-                ERACodeCommentLine line = new("新しい行");
+                ERACodeCommentLine line = new(";新しい行");
                 treeCodeTree.Nodes.AddRange([.. line.GetTreeNodes()]);
             }
             else if (selectedNode.Tag is ERABlockSegment)
@@ -352,14 +369,14 @@ namespace EOProcesser
                 if (addTypeResult == DialogResult.Yes)
                 {
                     // Add as a child
-                    ERACodeCommentLine line = new("新しい行");
+                    ERACodeCommentLine line = new(";新しい行");
                     selectedNode.Nodes.AddRange([.. line.GetTreeNodes()]);
                     selectedNode.Expand();
                 }
                 else
                 {
                     // Add as a sibling after the selected node
-                    ERACodeCommentLine line = new("新しい行");
+                    ERACodeCommentLine line = new(";新しい行");
                     TreeNode[] newNodes = [.. line.GetTreeNodes()];
                     int index = selectedNode.Index + 1;
                     TreeNode parent = selectedNode.Parent;
@@ -374,7 +391,7 @@ namespace EOProcesser
             else if (selectedNode.Parent != null)
             {
                 // Add after the selected node if it's not a block
-                ERACodeCommentLine line = new("新しい行");
+                ERACodeCommentLine line = new(";新しい行");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
                 int index = selectedNode.Index + 1;
                 TreeNode parent = selectedNode.Parent;
@@ -388,7 +405,7 @@ namespace EOProcesser
             else
             {
                 // Add after the selected node if it's a root node
-                ERACodeCommentLine line = new("新しい行");
+                ERACodeCommentLine line = new(";新しい行");
                 TreeNode[] newNodes = [.. line.GetTreeNodes()];
                 int index = selectedNode.Index + 1;
 
@@ -480,6 +497,19 @@ namespace EOProcesser
                     }
                 }
             }
+        }
+
+        internal ERACodeMultiLines GetCodeMultiLines()
+        {
+            ERACodeMultiLines lines = [];
+            foreach(TreeNode code in treeCodeTree.Nodes)
+            {
+                if (code.Tag is ERACode c)
+                {
+                    lines.Add(c);
+                }
+            }
+            return lines;
         }
     }
 }
