@@ -25,6 +25,7 @@ namespace EOProcesser
             string? currentEffectNo = null;
             bool hasFoundFirstCallform = false;
             int consecutiveNumberedLines = 0;
+            int currentEffectNoIndex = 0;
             
             // 添加前缀描述
             foreach (var code in explanationFunc)
@@ -96,10 +97,24 @@ namespace EOProcesser
                             }
                             
                             // 设置当前效果编号
-                            currentEffectNo = NumString[i].ToString();
+                            if (currentEffectNoIndex == i)
+                            {
+                                currentEffectNo = null;
+                                currentEffectNoIndex++;
+                            }
+                            else
+                            {
+                                currentEffectNo = NumString[i].ToString();
+                            }
                             
                             // 添加当前行到描述中（保留编号）
-                            currentDescriptionLines.Add(code);
+                            if (code is ERACodePrintLine pLine)
+                            {
+                                currentDescriptionLines.Add(
+                                    ERACodeLineFactory.CreateFromLine
+                                    (pLine.CodeLine.ToString()
+                                    .Replace($"{NumString[i]}：", "")));
+                            }
                             break;
                         }
                     }
@@ -187,15 +202,6 @@ namespace EOProcesser
             }
             return result;
         }
-        public string GetAllEffectFuncContent()
-        {
-            StringBuilder sb = new();
-            sb.Append(GetExplanationFuncContent());
-            sb.Append(GetCanFuncContent());
-            sb.Append(GetEffectFuncContent());
-            return sb.ToString();
-        }
-
         public List<TreeNode> GetTreeNodes()
         {
             // 创建根节点
@@ -427,32 +433,18 @@ namespace EOProcesser
 
         public ERACodeMultiLines GetCanFuncContent()
         {
-            ERACodeMultiLines lines = ERACodeAnalyzer.AnalyzeCode($"""
+            return ERACodeAnalyzer.AnalyzeCode($"""
                 {GetExtraLines(EffectDefinition)}
-                {GetEffectIfSegment()}
+                {GetCanIfSegment()}
                 """);
-            if (Count == 0)
-            {
-                return lines;
-            }
-            ERACodeIfSegment segment = new(this[0].Condition ?? "1 == 1", this[0].CanFuncs);
-            lines.Add(segment);
-            return lines;
         }
 
         public ERACodeMultiLines GetEffectFuncContent()
         {
-            ERACodeMultiLines lines = ERACodeAnalyzer.AnalyzeCode($"""
+            return ERACodeAnalyzer.AnalyzeCode($"""
                 {GetExtraLines(EffectDefinition)}
                 {GetEffectIfSegment()}
                 """);
-            if (Count == 0)
-            {
-                return lines;
-            }
-            ERACodeIfSegment segment = new(this[0].Condition ?? "1 == 1", this[0].CanFuncs);
-            lines.Add(segment);
-            return lines;
         }
 
         public void Add(EOCardManagerEffect effect)
