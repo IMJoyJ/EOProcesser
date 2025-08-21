@@ -2235,7 +2235,15 @@ namespace EOProcesser
             listCardInfo.Items.Add(
                 new ERACodeSelectCaseSubCaseListItem(
                     new ERACodeSelectCaseSubCase(@"""種類""", "フィールド")));
-            
+
+        }
+
+        private void listCardInfo_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (listCardInfo.SelectedItem != null)
+            {
+                btnEditCardInfoValue_Click(sender, e);
+            }
         }
     }
 }

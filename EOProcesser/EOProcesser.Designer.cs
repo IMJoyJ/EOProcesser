@@ -536,6 +536,7 @@
             listCardInfo.Name = "listCardInfo";
             listCardInfo.Size = new Size(296, 284);
             listCardInfo.TabIndex = 7;
+            listCardInfo.MouseDoubleClick += listCardInfo_MouseDoubleClick;
             // 
             // label4
             // 
