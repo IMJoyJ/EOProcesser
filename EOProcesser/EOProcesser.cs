@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using EOProcesser.Settings;
 using System.Reflection.Emit;
 using System.Text;
+using EOProcesser.Forms;
 
 namespace EOProcesser
 {
@@ -2075,12 +2076,14 @@ namespace EOProcesser
         {
             if (listCardInfo.SelectedItem is ERACodeSelectCaseSubCaseListItem selectedItem)
             {
-                string value = Microsoft.VisualBasic.Interaction.InputBox(
-                    "値を入力してください:", "カード情報の編集",
-                    selectedItem.CaseValue.GetValue() ?? "");
+                formStringSelection form = new(
+                    Models.CardInfoSettings.GetValueListForKey(
+                        selectedItem.CaseValue.CaseCondition ?? "") ?? [],
+                        selectedItem.CaseValue.GetValue());
 
-                if (!string.IsNullOrEmpty(value))
+                if (form.ShowDialog() == DialogResult.OK)
                 {
+                    string value = form.ResultString ?? "";
                     int selectedIndex = listCardInfo.SelectedIndex;
                     listCardInfo.Items.RemoveAt(selectedIndex);
                     listCardInfo.Items.Insert(selectedIndex,
@@ -2098,19 +2101,33 @@ namespace EOProcesser
 
         private void btnAddCardInfo_Click(object sender, EventArgs e)
         {
-            string key = Microsoft.VisualBasic.Interaction.InputBox(
-                "キーを入力してください:", "カード情報の追加", "");
-
-            if (!string.IsNullOrEmpty(key))
+            List<string> keyList = Models.CardInfoSettings.GetKeyList();
+            formStringSelection form = new(keyList, "種類");
+            if (form.ShowDialog() == DialogResult.OK)
             {
-                string value = Microsoft.VisualBasic.Interaction.InputBox(
-                    "値を入力してください:", "カード情報の追加", "");
-
-                if (!string.IsNullOrEmpty(value))
+                string key = form.ResultString ?? "";
+                if (!string.IsNullOrWhiteSpace(key))
                 {
-                    listCardInfo.Items.Add(
-                        new ERACodeSelectCaseSubCaseListItem(
-                            new ERACodeSelectCaseSubCase($"\"{key}\"", value)));
+                    // Check if the key already exists in the list
+                    bool keyExists = listCardInfo.Items.Cast<ERACodeSelectCaseSubCaseListItem>()
+                        .Any(item => (item.CaseValue.CaseCondition ?? "") == key);
+
+                    if (keyExists)
+                    {
+                        MessageBox.Show($"キー「{key}」は既に存在します。", "警告",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        // 選択したキーに基づいて適切なデフォルト値を取得
+                        var valueList = Models.CardInfoSettings.GetValueListForKey(key);
+                        string defaultValue = valueList?.FirstOrDefault() ?? "";
+
+                        // 新しいカード情報項目を作成して追加
+                        listCardInfo.Items.Add(
+                            new ERACodeSelectCaseSubCaseListItem(
+                                new ERACodeSelectCaseSubCase($"\"{key}\"", defaultValue)));
+                    }
                 }
             }
         }
@@ -2119,7 +2136,7 @@ namespace EOProcesser
         {
             if (listCardInfo.SelectedIndex != -1)
             {
-                if (MessageBox.Show("選択したカード情報を削除してもよろしいですか？", "カード情報の削除",
+                if (MessageBox.Show("選択した情報を削除してもよろしいですか？", "情報の削除",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     listCardInfo.Items.RemoveAt(listCardInfo.SelectedIndex);
@@ -2127,7 +2144,7 @@ namespace EOProcesser
             }
             else
             {
-                MessageBox.Show("削除するカード情報を選択してください。", "警告",
+                MessageBox.Show("削除する情報を選択してください。", "警告",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
