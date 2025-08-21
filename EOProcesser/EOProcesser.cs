@@ -7,6 +7,7 @@ using EOProcesser.Settings;
 using System.Reflection.Emit;
 using System.Text;
 using EOProcesser.Forms;
+using static System.Windows.Forms.LinkLabel;
 
 namespace EOProcesser
 {
@@ -1643,6 +1644,11 @@ namespace EOProcesser
                                 }
                             }
 
+                            if (checkIsRogueCard.Checked)
+                            {
+                                explanationFunc.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
+                            }
+
                             int effectIndex = 0;
                             foreach (var node in effectNodes)
                             {
@@ -1679,6 +1685,11 @@ namespace EOProcesser
                                         }
                                     }
                                 }
+                            }
+
+                            if (checkIsRogueCard.Checked)
+                            {
+                                explanationFunc.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
                             }
 
                             ERACodeFuncSegment canFunc =
