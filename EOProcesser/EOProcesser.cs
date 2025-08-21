@@ -34,7 +34,6 @@ namespace EOProcesser
             LoadCodeFolderTreeView();
         }
 
-
         int loadedCards = 0;
         int allCards = 0;
         private readonly SemaphoreSlim semaphore = new(16); // 限制最大并行度为16
@@ -91,7 +90,9 @@ namespace EOProcesser
                 return allDirectories[settings.CardFolder];
 
             }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
             catch (Exception ex)
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
 #if DEBUG
 #pragma warning disable CS8360 // 筛选器表达式是常量 “false”。
             when (false)
@@ -151,10 +152,9 @@ namespace EOProcesser
                     semaphore.Release(); // 释放信号量
                 }
             }
-            catch (Exception ex)
-            {
-                // 捕获任何其他异常
-            }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
+            catch (Exception ex) { }
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
         }
 
         private void LoadCodeFolderTreeView()
@@ -269,15 +269,187 @@ namespace EOProcesser
         private void tvFolderFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             // Show context menu on right-click
-            if (e.Button == MouseButtons.Right && e.Node.Tag is string filePath)
+            if (e.Button == MouseButtons.Right && e.Node.Tag is string path)
             {
-                // Set the event handler for the Open menu item
-                openToolStripMenuItem.Click -= OpenFile_Click;
-                openToolStripMenuItem.Click += OpenFile_Click;
-                openToolStripMenuItem.Tag = filePath;
+                ContextMenuStrip menu = new();
+                if (File.Exists(path))
+                {
+                    // ファイルの場合は編集オプションを表示
+                    var editMenuItem = menu.Items.Add("コードを編集");
+                    editMenuItem.Click += (_, _) => eeCodeView.LoadCodeFromFile(path);
 
-                // Show the context menu
-                CodeViewMenuStrip.Show(tvFolderFiles, e.Location);
+                    var renameMenuItem = menu.Items.Add("名前を変更");
+                    renameMenuItem.Click += (_, _) =>
+                    {
+                        string newName = Microsoft.VisualBasic.Interaction.InputBox(
+                            "新しいファイル名を入力してください:", "名前変更", Path.GetFileNameWithoutExtension(path));
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            try
+                            {
+                                string directory = Path.GetDirectoryName(path) ?? "";
+                                string extension = Path.GetExtension(path);
+                                string newPath = Path.Combine(directory, newName + extension);
+
+                                if (File.Exists(newPath))
+                                {
+                                    MessageBox.Show("同名のファイルが既に存在します。", "エラー",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+
+                                File.Move(path, newPath);
+                                e.Node.Text = Path.GetFileName(newPath);
+                                e.Node.Tag = newPath;
+                                MessageBox.Show("ファイル名を変更しました。", "成功",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"ファイル名の変更に失敗しました: {ex.Message}", "エラー",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    };
+
+                    var openExternalMenuItem = menu.Items.Add("外部エディターで開く");
+                    openExternalMenuItem.Tag = path;
+                    openExternalMenuItem.Click += (s, args) =>
+                    {
+                        if (s is ToolStripMenuItem menuItem && menuItem.Tag is string filePath)
+                        {
+                            try
+                            {
+                                if (File.Exists(filePath))
+                                {
+                                    Process.Start(new ProcessStartInfo
+                                    {
+                                        FileName = filePath,
+                                        UseShellExecute = true
+                                    });
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Error opening file: {ex.Message}", "Error",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    };
+                }
+                else if (Directory.Exists(path))
+                {
+                    // ディレクトリの場合は新規作成オプションを表示
+                    var newScriptMenuItem = menu.Items.Add("新しいスクリプト作成");
+                    newScriptMenuItem.Click += (_, _) =>
+                    {
+                        try
+                        {
+                            string fileName = Microsoft.VisualBasic.Interaction.InputBox(
+                                "新しいファイル名を入力してください:", "ファイル作成", "新規スクリプト.erb");
+                            if (!string.IsNullOrEmpty(fileName))
+                            {
+                                if (!fileName.EndsWith(".erb", StringComparison.OrdinalIgnoreCase))
+                                    fileName += ".erb";
+                                string newFilePath = Path.Combine(path, fileName);
+                                File.WriteAllText(newFilePath, "");
+
+                                // 新しいノードをツリービューに追加
+                                TreeNode newNode = new(fileName) { Tag = newFilePath };
+                                e.Node.Nodes.Add(newNode);
+                                e.Node.Expand();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"ファイル作成エラー: {ex.Message}", "エラー",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    };
+
+                    var newFolderMenuItem = menu.Items.Add("新しいフォルダ作成");
+                    newFolderMenuItem.Click += (_, _) =>
+                    {
+                        try
+                        {
+                            string folderName = Microsoft.VisualBasic.Interaction.InputBox(
+                                "新しいフォルダ名を入力してください:", "フォルダ作成", "新規フォルダ");
+                            if (!string.IsNullOrEmpty(folderName))
+                            {
+                                string newFolderPath = Path.Combine(path, folderName);
+                                Directory.CreateDirectory(newFolderPath);
+
+                                // 新しいノードをツリービューに追加
+                                TreeNode newNode = new(folderName) { Tag = newFolderPath };
+                                e.Node.Nodes.Add(newNode);
+                                e.Node.Expand();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"フォルダ作成エラー: {ex.Message}", "エラー",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    };
+
+                    var renameMenuItem = menu.Items.Add("フォルダー名を変更");
+                    renameMenuItem.Click += (_, _) =>
+                    {
+                        string newName = Microsoft.VisualBasic.Interaction.InputBox(
+                            "新しいフォルダー名を入力してください:", "名前変更", Path.GetFileName(path));
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            try
+                            {
+                                string? parentPath = Directory.GetParent(path)?.FullName;
+                                if (parentPath == null)
+                                {
+                                    MessageBox.Show("親フォルダーを特定できませんでした。", "エラー",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+
+                                string newPath = Path.Combine(parentPath, newName);
+
+                                if (Directory.Exists(newPath))
+                                {
+                                    MessageBox.Show("同名のフォルダーが既に存在します。", "エラー",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+
+                                Directory.Move(path, newPath);
+                                e.Node.Text = newName;
+                                e.Node.Tag = newPath;
+                                MessageBox.Show("フォルダー名を変更しました。", "成功",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"フォルダー名の変更に失敗しました: {ex.Message}", "エラー",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    };
+
+                    var openExplorerMenuItem = menu.Items.Add("エクスプローラーで開く");
+                    openExplorerMenuItem.Click += (_, _) =>
+                    {
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = path,
+                                UseShellExecute = true
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"フォルダを開けませんでした: {ex.Message}", "エラー",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    };
+                }
             }
         }
 
@@ -435,6 +607,8 @@ namespace EOProcesser
         }
         private void ClearAll()
         {
+            checkIsRogueCard.Checked = false;
+            listCardScriptCard.Items.Clear();
             listCategory.Items.Clear();
             listCardInfo.Items.Clear();
             txtCardName.Text = "";
@@ -446,13 +620,14 @@ namespace EOProcesser
             eeCardManagerScriptEditor.ClearAll();
             eeCardSummonAA.ClearAll();
             eeExtraFuncs.ClearAll();
+            CurrentCard = null;
         }
         ERAOCGCardScript? CurrentCardScript = null;
         private void treeCards_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Node.Tag is ERAOCGCardScript script)
             {
-                if (MessageBox.Show("保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (noConfirm || MessageBox.Show("保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ClearAll();
                     listCardScriptCard.Items.Clear();
@@ -467,7 +642,7 @@ namespace EOProcesser
             }
             else if (e.Node.Tag is ERAOCGCard card)
             {
-                if (MessageBox.Show("カード所属のスクリプトを開きます。\n保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (noConfirm || MessageBox.Show("カード所属のスクリプトを開きます。\n保存されてないデータが失われる。\n確認しますか？", "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     ClearAll();
                     foreach (var c in card.CardScript.Cards)
@@ -488,6 +663,7 @@ namespace EOProcesser
                 listCardScriptCard.SelectedIndex = 0;
                 listCardScriptCard_MouseDoubleClick(sender, e);
             }
+            noConfirm = false;
         }
 
         bool noConfirm = false;
@@ -503,6 +679,7 @@ namespace EOProcesser
                     noConfirm = false;
                     txtCardName.Text = card.Name;
                     txtShortName.Text = card.ShortName;
+                    checkIsRogueCard.Checked = card.IsRogueCard();
                     listCardInfo.Items.Clear();
                     listCategory.Items.Clear();
                     listCategory.Items.AddRange([.. card.GetCardCategory()]);
@@ -604,12 +781,57 @@ namespace EOProcesser
             {
                 case null:
                     return;
-                case ERACode code:
-                    // 如果节点包含ERACode，将其加载到编辑器
-                    eeCardManagerScriptEditor.LoadCode(code);
-                    break;
-                case IEnumerable<ERACode> codes:
-                    eeCardManagerScriptEditor.LoadCode(new ERACodeMultiLines(codes));
+                case IEnumerable<ERACode> or ERACode:
+                    if (e.Node.Tag is IEnumerable<ERACode> codes)
+                    {
+                        eeCardManagerScriptEditor.LoadCode(new ERACodeMultiLines(codes));
+                    }
+                    else if (e.Node.Tag is ERACode code)
+                    {
+                        eeCardManagerScriptEditor.LoadCode(code);
+                    }
+                    eeCardManagerScriptEditor.ClearOnSaveEvent();
+                    eeCardManagerScriptEditor.OnSave += (sdr, ee) =>
+                    {
+                        ERACodeMultiLines lines = eeCardManagerScriptEditor.GetCodeMultiLines();
+                        List<TreeNode> nodeList = lines.GetTreeNodes();
+                        var parent = e.Node.Parent;
+                        // Replace e.Node with the new nodes from nodeList
+                        if (parent != null)
+                        {
+                            if (parent.Tag is EOCardManagerEffect)
+                            {
+                                e.Node.Nodes.Clear();
+                                e.Node.Nodes.AddRange([.. nodeList]);
+                            }
+                            else
+                            {
+                                // If the node has a parent, replace the node in parent's collection
+                                int nodeIndex = parent.Nodes.IndexOf(e.Node);
+                                if (nodeIndex >= 0)
+                                {
+                                    parent.Nodes.RemoveAt(nodeIndex);
+                                    foreach (TreeNode node in nodeList)
+                                    {
+                                        parent.Nodes.Insert(nodeIndex++, node);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // If this is a root node (no parent), replace in the TreeView.Nodes collection
+                            int nodeIndex = treeCardEffectList.Nodes.IndexOf(e.Node);
+                            if (nodeIndex >= 0)
+                            {
+                                treeCardEffectList.Nodes.RemoveAt(nodeIndex);
+                                foreach (TreeNode newNode in nodeList)
+                                {
+                                    treeCardEffectList.Nodes.Insert(nodeIndex++, newNode);
+                                }
+                            }
+                        }
+                    };
                     break;
                 case string strValue:
                     // 如果是字符串属性（如Condition），提示用户输入
@@ -651,13 +873,13 @@ namespace EOProcesser
                 case EOCardManagerEffect effect:
                     // 如果点击的是效果节点本身，可以编辑效果编号或其他主要属性
                     string? newEffectNo = Microsoft.VisualBasic.Interaction.InputBox(
-                        "新しい効果計数を入力してください:", "効果計数", effect.EffectNo ?? "");
-
-                    if (!string.IsNullOrEmpty(newEffectNo))
+                        "新しい効果計数を入力してください\n（auto・自動を入力すると自動数えになる）:", "効果計数", effect.EffectNo ?? "");
+                    if (newEffectNo == "auto" || newEffectNo == "自動")
                     {
-                        effect.EffectNo = newEffectNo;
-                        e.Node.Text = $"效果{newEffectNo}";
+                        newEffectNo = null;
                     }
+                    effect.EffectNo = newEffectNo;
+                    e.Node.Text = $"效果{newEffectNo ?? "(自動数え)"}";
                     break;
             }
         }
@@ -956,7 +1178,7 @@ namespace EOProcesser
 
         private void btnSaveSingleCard_Click(object sender, EventArgs e)
         {
-
+            SaveCurrentCard();
         }
 
         private void treeCardEffectList_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -1306,7 +1528,6 @@ namespace EOProcesser
                     if (CurrentCard == selectedCard)
                     {
                         ClearAll();
-                        CurrentCard = null;
                     }
 
                     SaveCurrentCard();
@@ -1380,7 +1601,6 @@ namespace EOProcesser
                             CurrentEditingTreeNode.Nodes.AddRange([.. card.GetTreeNodes()]);
                         }
                     }
-
                     SaveCurrentCard();
                 }
             }
@@ -1409,18 +1629,163 @@ namespace EOProcesser
                     {
                         if (radioCMStandardEffect.Checked
                             && treeCardEffectList.Nodes.Count > 0
-                            && treeCardEffectList.Nodes[0].Tag is EOCardManagerCardEffect effects)
+                            && treeCardEffectList.Nodes[0].Nodes.Count == 5)
                         {
-                            return effects.GetAllEffectFuncContent();
+                            List<TreeNode> effectNodes = [.. treeCardEffectList.Nodes[0].Nodes[4].Nodes.Cast<TreeNode>()];
+                            ERACodeFuncSegment explanationFunc = new($"CARD_EXPLANATION_{CurrentCard.CardId}(種類)");
+                            //効果文定義
+                            foreach (TreeNode node in treeCardEffectList.Nodes[0].Nodes[0].Nodes)
+                            {
+                                if (node.Tag is ERACode code)
+                                {
+                                    explanationFunc.Add(code);
+                                }
+                            }
+
+                            int effectIndex = 0;
+                            foreach (var node in effectNodes)
+                            {
+                                string str = "";
+                                if (node.Tag is EOCardManagerEffect effect)
+                                {
+                                    if (effect.EffectNo != null)
+                                    {
+                                        str = effect.EffectNo;
+                                    }
+                                    else
+                                    {
+                                        str = EOCardManagerCardEffect.NumString[effectIndex].ToString();
+                                        effectIndex++;
+                                    }
+                                }
+                                bool prefixAdded = false;
+                                for (int i = 0; i < node.Nodes[1].Nodes.Count; i++)
+                                {
+                                    TreeNode childNode = node.Nodes[1].Nodes[i];
+                                    if (childNode.Tag is ERACode code)
+                                    {
+                                        if (!prefixAdded && code is ERACodePrintLine codeLine)
+                                        {
+                                            prefixAdded = true;
+                                            ERACodePrintLine newCodeLine =
+                                                new($"PRINT{codeLine.PrintType} {str}：{codeLine.Content}");
+                                            childNode.Tag = newCodeLine;
+                                            explanationFunc.Add(newCodeLine);
+                                        }
+                                        else
+                                        {
+                                            explanationFunc.Add(code);
+                                        }
+                                    }
+                                }
+                            }
+
+                            ERACodeFuncSegment canFunc =
+                                new($"CARDCAN_{CurrentCard.CardId}(決闘者,種類,ゾーン,場所)");
+                            //効果可用性定義
+                            foreach (TreeNode node in treeCardEffectList.Nodes[0].Nodes[1].Nodes)
+                            {
+                                if (node.Tag is ERACode code)
+                                {
+                                    canFunc.Add(code);
+                                }
+                            }
+                            if (effectNodes.Count > 0)
+                            {
+                                ERACodeIfSegment segment = new(effectNodes[0].Nodes[0].Tag.ToString() ?? "1 == 1");
+                                // 効果可用性
+                                foreach (TreeNode node in effectNodes[0].Nodes[2].Nodes)
+                                {
+                                    if (node.Tag is ERACode code)
+                                    {
+                                        segment.Add(code);
+                                    }
+                                }
+                                for (int i = 1; i < effectNodes.Count; i++)
+                                {
+                                    ERACodeMultiLines lines = [];
+                                    foreach (TreeNode node in effectNodes[i].Nodes[2].Nodes)
+                                    {
+                                        if (node.Tag is ERACode code)
+                                        {
+                                            lines.Add(code);
+                                        }
+                                    }
+                                    if (lines.Count() > 0)
+                                    {
+                                        string cond = effectNodes[i].Nodes[0].Tag.ToString() ?? "1 == 1";
+                                        segment.AddElseIf(cond, lines);
+                                    }
+                                }
+                                canFunc.Add(segment);
+                            }
+
+                            ERACodeFuncSegment effectFunc =
+                                new($"CARDEFFECT_{CurrentCard.CardId}(決闘者,種類,ゾーン,場所)");
+                            //効果関数定義
+                            foreach (TreeNode node in treeCardEffectList.Nodes[0].Nodes[2].Nodes)
+                            {
+                                if (node.Tag is ERACode code)
+                                {
+                                    effectFunc.Add(code);
+                                }
+                            }
+
+                            if (effectNodes.Count > 0)
+                            {
+                                ERACodeIfSegment segment = new(effectNodes[0].Nodes[0].Tag.ToString() ?? "1 == 1");
+                                //効果関数
+                                foreach (TreeNode node in effectNodes[0].Nodes[3].Nodes)
+                                {
+                                    if (node.Tag is ERACode code)
+                                    {
+                                        segment.Add(code);
+                                    }
+                                }
+                                for (int i = 1; i < effectNodes.Count; i++)
+                                {
+                                    ERACodeMultiLines lines = [];
+                                    foreach (TreeNode node in effectNodes[i].Nodes[3].Nodes)
+                                    {
+                                        if (node.Tag is ERACode code)
+                                        {
+                                            lines.Add(code);
+                                        }
+                                    }
+                                    if (lines.Count() > 0)
+                                    {
+                                        string cond = effectNodes[i].Nodes[0].Tag.ToString() ?? "1 == 1";
+                                        segment.AddElseIf(cond, lines);
+                                    }
+                                }
+                                effectFunc.Add(segment);
+                            }
+
+                            ERACodeMultiLines extraFuncs = [];
+                            //追加関数
+                            foreach (TreeNode tn in treeCardEffectList.Nodes[0].Nodes[3].Nodes)
+                            {
+                                if (tn.Tag is ERACode code)
+                                {
+                                    extraFuncs.Add(code);
+                                }
+                            }
+
+                            return Utils.TrimCode($"""
+                                {explanationFunc}
+                                {canFunc}
+                                {effectFunc}
+                                {extraFuncs}
+                                """);
                         }
                         else
                         {
-                            return $"""
+                            return Utils.TrimCode($"""
                             {GetCardExplanationScriptFromForm()}
                             {GetCardCanScriptFromForm()}
                             {GetCardEffectScriptFromForm()}
                             {GetCardExtraScriptFromForm()}
-                            """;
+                            """);
                         }
                     }
 
@@ -1554,6 +1919,50 @@ namespace EOProcesser
                     sb.AppendLine(card.GetCardEffectFunc().ToString());
                 }
             }
+            silent = true;
+            File.WriteAllText(CurrentCardScript.ScriptFile, Utils.TrimCode(sb.ToString()));
+            CurrentCardScript = new(CurrentCardScript.ScriptFile);
+            if (CurrentEditingTreeNode != null)
+            {
+                // Replace existing nodes with the new nodes from CurrentCardScript
+                var newNodes = CurrentCardScript.GetTreeNodes();
+                var parent = CurrentEditingTreeNode.Parent;
+
+                if (parent != null)
+                {
+                    // Find the index of the CurrentEditingTreeNode in the parent's collection
+                    int nodeIndex = parent.Nodes.IndexOf(CurrentEditingTreeNode);
+                    if (nodeIndex >= 0)
+                    {
+                        // Remove the old node
+                        parent.Nodes.RemoveAt(nodeIndex);
+
+                        // Insert the new nodes at the same position
+                        foreach (TreeNode newNode in newNodes)
+                        {
+                            parent.Nodes.Insert(nodeIndex++, newNode);
+                        }
+                    }
+                }
+                else
+                {
+                    // If it's a root node, find its index in the treeView's root collection
+                    int nodeIndex = treeCards.Nodes.IndexOf(CurrentEditingTreeNode);
+                    if (nodeIndex >= 0)
+                    {
+                        // Remove the old node
+                        treeCards.Nodes.RemoveAt(nodeIndex);
+
+                        // Insert the new nodes at the same position
+                        foreach (TreeNode newNode in newNodes)
+                        {
+                            treeCards.Nodes.Insert(nodeIndex++, newNode);
+                        }
+                    }
+                }
+            }
+            ClearAll();
+            silent = false;
         }
 
         private void btnAddCategory_Click(object sender, EventArgs e)
@@ -1765,6 +2174,51 @@ namespace EOProcesser
                     listCardInfo.SelectedIndex = selectedIndex + 1;
                 }
             }
+        }
+
+        private void btnQuickSetMonster_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("既存のリストをクリアして、\nモンスターカード用の基本情報を設定しますか？", "確認",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+            listCardInfo.Items.Clear();
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""種類""", "効果モン")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""属性""", "水属性")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""種族""", "植物族")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""レベル""", "6")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""攻撃力""", "1000")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""守備力""", "2400")));
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""性別""", "牝性")));
+        }
+
+        private void btnQuickSetSpellTrap_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("既存のリストをクリアして、\n魔法・罠カード用の基本情報を設定しますか？", "確認",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+            listCardInfo.Items.Clear();
+            listCardInfo.Items.Add(
+                new ERACodeSelectCaseSubCaseListItem(
+                    new ERACodeSelectCaseSubCase(@"""種類""", "フィールド")));
+            
         }
     }
 }
