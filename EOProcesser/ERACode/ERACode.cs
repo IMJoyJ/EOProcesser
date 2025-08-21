@@ -569,6 +569,45 @@ namespace EOProcesser
 
             return [rootNode];
         }
+        public override string ToString()
+        {
+            StringBuilder sb = new();
+            string indentStr = new('\t', Indentation);
+            
+            // Add IF statement
+            sb.AppendLine($"{indentStr}IF {Condition}");
+            
+            // Add IF block code
+            foreach (var code in codes)
+            {
+                sb.AppendLine(code.ToString());
+            }
+            
+            // Add ELSEIF and ELSE blocks if any
+            foreach (var segment in elseSegments)
+            {
+                // Add ELSEIF or ELSE statement
+                if (segment.Condition == null)
+                {
+                    sb.AppendLine($"{indentStr}ELSE");
+                }
+                else
+                {
+                    sb.AppendLine($"{indentStr}ELSEIF {segment.Condition}");
+                }
+                
+                // Add code in the ELSEIF or ELSE block
+                foreach (var code in segment.Codes)
+                {
+                    sb.AppendLine(code.ToString());
+                }
+            }
+            
+            // Add ENDIF
+            sb.Append($"{indentStr}ENDIF");
+            
+            return sb.ToString();
+        }
     }
 
     public class ERACodeElseSegment : ERABlockSegment
