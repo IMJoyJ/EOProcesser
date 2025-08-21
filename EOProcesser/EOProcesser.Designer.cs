@@ -426,10 +426,10 @@
             // btnEditCardInfoValue
             // 
             btnEditCardInfoValue.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnEditCardInfoValue.Location = new Point(347, 369);
+            btnEditCardInfoValue.Location = new Point(336, 369);
             btnEditCardInfoValue.Margin = new Padding(1, 2, 1, 2);
             btnEditCardInfoValue.Name = "btnEditCardInfoValue";
-            btnEditCardInfoValue.Size = new Size(61, 29);
+            btnEditCardInfoValue.Size = new Size(77, 29);
             btnEditCardInfoValue.TabIndex = 15;
             btnEditCardInfoValue.Text = "値編集";
             btnEditCardInfoValue.UseVisualStyleBackColor = true;
@@ -438,10 +438,10 @@
             // btnEditCardInfoKey
             // 
             btnEditCardInfoKey.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnEditCardInfoKey.Location = new Point(286, 369);
+            btnEditCardInfoKey.Location = new Point(265, 369);
             btnEditCardInfoKey.Margin = new Padding(1, 2, 1, 2);
             btnEditCardInfoKey.Name = "btnEditCardInfoKey";
-            btnEditCardInfoKey.Size = new Size(59, 29);
+            btnEditCardInfoKey.Size = new Size(64, 29);
             btnEditCardInfoKey.TabIndex = 15;
             btnEditCardInfoKey.Text = "鍵編集";
             btnEditCardInfoKey.UseVisualStyleBackColor = true;
