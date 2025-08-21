@@ -47,7 +47,7 @@
             btnConfirm.Name = "btnConfirm";
             btnConfirm.Size = new Size(42, 29);
             btnConfirm.TabIndex = 1;
-            btnConfirm.Text = "√";
+            btnConfirm.Text = "⚪";
             btnConfirm.UseVisualStyleBackColor = true;
             btnConfirm.Click += btnConfirm_Click;
             // 
@@ -75,6 +75,7 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "formStringSelection";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "選択";
             ResumeLayout(false);
         }

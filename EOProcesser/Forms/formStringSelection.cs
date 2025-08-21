@@ -16,13 +16,13 @@ namespace EOProcesser.Forms
         {
             InitializeComponent();
             comboSelection.Items.AddRange([.. selection.Select((obj) => obj.ToString())]);
-            comboSelection.SelectedValue = defaultValue;
+            comboSelection.Text = defaultValue;
         }
         public string? ResultString = null;
 
         private void btnConfirm_Click(object sender, EventArgs e)
         {
-            ResultString = comboSelection.SelectedItem as string;
+            ResultString = comboSelection.Text;
             DialogResult = DialogResult.OK;
         }
 
