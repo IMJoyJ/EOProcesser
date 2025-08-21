@@ -877,7 +877,7 @@
             MainMenuStrip = menuStrip;
             Margin = new Padding(5, 4, 5, 4);
             Name = "EOProcesser";
-            Text = "ERAOCG AIO Manager v1.0.0 by JoyJ";
+            Text = "ERAOCG AIO Manager v1.0.1 by JoyJ";
             Load += EOProcesser_Load;
             Shown += EOProcesser_Shown;
             menuStrip.ResumeLayout(false);
