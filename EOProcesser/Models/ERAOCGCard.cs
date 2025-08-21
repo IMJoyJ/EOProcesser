@@ -146,10 +146,9 @@ namespace EOProcesser
                                     ERAOCGCard newCard = new(this, cardCode);
                                     Cards.Add(newCard);
                                 }
-                                catch (Exception ex)
-                                {
-                                    ;
-                                }
+#pragma warning disable CS0168 // 声明了变量，但从未使用过
+                                catch (Exception ex) { }
+#pragma warning restore CS0168 // 声明了变量，但从未使用过
                             }
                         }
                     }
@@ -471,6 +470,11 @@ namespace EOProcesser
         internal void RemoveCardCategory(string cat)
         {
             Categories.Remove(cat);
+        }
+
+        internal bool IsRogueCard()
+        {
+            return GetCardExplanationFunc().Any((e) => (e.ToString().Trim() == @"CALL TEXT_DECORATION(""ROGUE"")"));
         }
     }
 }
