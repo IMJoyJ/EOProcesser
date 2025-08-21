@@ -338,7 +338,7 @@ namespace EOProcesser
             }
             if (valList.Count > 0)
             {
-                return valList.ElementAt(0).Value;
+                return valList.ElementAt(0).Value.TrimStart('(').TrimEnd(')');
             }
             return null;
         }
