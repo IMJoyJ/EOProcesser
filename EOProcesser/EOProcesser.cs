@@ -1808,6 +1808,7 @@ namespace EOProcesser
                         foreach (var c in listCategory.Items)
                         {
                             categories.AppendLine($"        RESULTS:{i} = {c}");
+                            i++;
                         }
                         return $"""
                         @CARDNAME_{CurrentCard.CardId},参照先
