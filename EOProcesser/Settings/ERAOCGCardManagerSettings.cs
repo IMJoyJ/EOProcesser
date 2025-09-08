@@ -13,5 +13,7 @@ namespace EOProcesser.Settings
         public string RootFolder { get; set; } = "";
         [JsonInclude]
         public string CardFolder { get; set; } = "";
+        [JsonInclude]
+        public string DeckFolder { get; set; } = "";
     }
 }

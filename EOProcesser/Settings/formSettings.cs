@@ -27,6 +27,7 @@ namespace EOProcesser
             InitializeComponent();
             txtRootFolder.Text = Settings.RootFolder;
             txtCardFolder.Text = Settings.CardFolder;
+            txtDeckFolder.Text = Settings.DeckFolder;
         }
 
         private void btnSelectRootFolder_Click(object sender, EventArgs e)
@@ -43,7 +44,7 @@ namespace EOProcesser
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
-                txtRootFolder.Text = Settings.RootFolder;
+                txtRootFolder.Text = folderDialog.SelectedPath;
             }
         }
 
@@ -71,8 +72,31 @@ namespace EOProcesser
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
-                txtCardFolder.Text = Settings.CardFolder;
+                txtCardFolder.Text = folderDialog.SelectedPath;
             }
+        }
+
+        private void btnSelectDeckFolder_Click(object sender, EventArgs e)
+        {
+            using FolderBrowserDialog folderDialog = new();
+            folderDialog.Description = "Select Deck Folder";
+            folderDialog.ShowNewFolderButton = true;
+
+            // If there's already a root folder set, start from there
+            if (!string.IsNullOrEmpty(Settings.DeckFolder) && Directory.Exists(Settings.DeckFolder))
+            {
+                folderDialog.SelectedPath = Settings.DeckFolder;
+            }
+
+            if (folderDialog.ShowDialog() == DialogResult.OK)
+            {
+                txtDeckFolder.Text = folderDialog.SelectedPath;
+            }
+        }
+
+        private void txtDeckFolder_TextChanged(object sender, EventArgs e)
+        {
+            Settings.DeckFolder = txtDeckFolder.Text;
         }
     }
 }
