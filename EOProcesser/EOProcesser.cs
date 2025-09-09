@@ -57,30 +57,6 @@ namespace EOProcesser
                 // 收集所有.erb文件
                 var allErbFiles = new List<string>();
                 CollectAllErbFiles(settings.CardFolder, allErbFiles);
-                // 使用正则表达式提取卡片ID和卡名
-                var regex = new Regex(@"(\d+)_(.+?)\.[Ee][Rr][Bb]");
-
-                foreach (var file in allErbFiles)
-                {
-                    try
-                    {
-                        string content = new FileInfo(file).Name;
-                        var matches = regex.Matches(content);
-
-                        foreach (System.Text.RegularExpressions.Match match in matches)
-                        {
-                            if (int.TryParse(match.Groups[1].Value, out int cardId))
-                            {
-                                cardDic[cardId] = match.Groups[2].Value;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // 忽略读取文件时的错误，继续处理其他文件
-                    }
-                }
-
                 allCards = allErbFiles.Count;
 
                 // 获取所有子目录
@@ -162,6 +138,10 @@ namespace EOProcesser
                 try
                 {
                     ERAOCGCardScript script = new(file);
+                    foreach(var card in script.Cards)
+                    {
+                        cardDic.Add(card.CardId, $"{card.Name}");
+                    }
                     Interlocked.Increment(ref loadedCards);
                     bwLoadCards.ReportProgress(0);
 
@@ -270,7 +250,6 @@ namespace EOProcesser
 
         private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string previousRootFolder = settings.RootFolder;
             formSettings formSettings = new(settings);
             if (formSettings.ShowDialog() == DialogResult.OK)
             {
@@ -283,14 +262,12 @@ namespace EOProcesser
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error saving settings: {ex.Message}", "Error",
+                    MessageBox.Show($"設定の変更が失敗しました: {ex.Message}", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
-                // If RootFolder changed, reload the TreeView
-                if (settings.RootFolder != previousRootFolder)
+                if (MessageBox.Show("設定を適用するには、アプリケーションを再起動する必要があります。\n今すぐしますか？", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    LoadCodeFolderTreeView();
+                    Application.Restart();
                 }
             }
         }
