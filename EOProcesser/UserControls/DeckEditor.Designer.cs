@@ -43,6 +43,8 @@
             tabExtraFuncs = new TabPage();
             txtExtraFunctions = new TextBox();
             tabDeckEditor = new TabPage();
+            btnExportToFile = new Button();
+            btnLoadDeckFromFile = new Button();
             label2 = new Label();
             txtDeckName = new TextBox();
             label1 = new Label();
@@ -60,8 +62,6 @@
             listExtraDeck = new ListBox();
             listMainDeck = new ListBox();
             listCardDictionary = new ListBox();
-            btnLoadDeckFromFile = new Button();
-            btnExportToFile = new Button();
             ((System.ComponentModel.ISupportInitialize)mainContainer).BeginInit();
             mainContainer.Panel1.SuspendLayout();
             mainContainer.Panel2.SuspendLayout();
@@ -264,6 +264,28 @@
             tabDeckEditor.Text = "デッキ編集";
             tabDeckEditor.UseVisualStyleBackColor = true;
             // 
+            // btnExportToFile
+            // 
+            btnExportToFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnExportToFile.Location = new Point(79, 333);
+            btnExportToFile.Name = "btnExportToFile";
+            btnExportToFile.Size = new Size(75, 23);
+            btnExportToFile.TabIndex = 12;
+            btnExportToFile.Text = "ファイル出力";
+            btnExportToFile.UseVisualStyleBackColor = true;
+            btnExportToFile.Click += btnExportToFile_Click;
+            // 
+            // btnLoadDeckFromFile
+            // 
+            btnLoadDeckFromFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnLoadDeckFromFile.Location = new Point(3, 333);
+            btnLoadDeckFromFile.Name = "btnLoadDeckFromFile";
+            btnLoadDeckFromFile.Size = new Size(75, 23);
+            btnLoadDeckFromFile.TabIndex = 12;
+            btnLoadDeckFromFile.Text = "ファイル読込";
+            btnLoadDeckFromFile.UseVisualStyleBackColor = true;
+            btnLoadDeckFromFile.Click += btnLoadDeckFromFile_Click;
+            // 
             // label2
             // 
             label2.AutoSize = true;
@@ -436,26 +458,6 @@
             listCardDictionary.Name = "listCardDictionary";
             listCardDictionary.Size = new Size(151, 289);
             listCardDictionary.TabIndex = 0;
-            // 
-            // btnLoadDeckFromFile
-            // 
-            btnLoadDeckFromFile.Location = new Point(3, 333);
-            btnLoadDeckFromFile.Name = "btnLoadDeckFromFile";
-            btnLoadDeckFromFile.Size = new Size(75, 23);
-            btnLoadDeckFromFile.TabIndex = 12;
-            btnLoadDeckFromFile.Text = "ファイル読込";
-            btnLoadDeckFromFile.UseVisualStyleBackColor = true;
-            btnLoadDeckFromFile.Click += btnLoadDeckFromFile_Click;
-            // 
-            // btnExportToFile
-            // 
-            btnExportToFile.Location = new Point(79, 333);
-            btnExportToFile.Name = "btnExportToFile";
-            btnExportToFile.Size = new Size(75, 23);
-            btnExportToFile.TabIndex = 12;
-            btnExportToFile.Text = "ファイル出力";
-            btnExportToFile.UseVisualStyleBackColor = true;
-            btnExportToFile.Click += btnExportToFile_Click;
             // 
             // DeckEditor
             // 
