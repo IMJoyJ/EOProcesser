@@ -162,8 +162,22 @@ namespace EOProcesser
                     // 如果SIF后面还有行，添加到SIF段
                     if (i + 1 <= endIndex)
                     {
-                        sifSegment.Add(ERACodeLineFactory.CreateFromLine(codeLines[i + 1]));
-                        i++; // 跳过下一行，因为已经处理了
+                        // 查找下一个非空非注释行
+                        int nextLineIndex = i + 1;
+                        while (nextLineIndex <= endIndex)
+                        {
+                            string nextLine = codeLines[nextLineIndex].TrimStart();
+                            if (!string.IsNullOrWhiteSpace(nextLine) && !nextLine.StartsWith(';'))
+                                break;
+                            nextLineIndex++;
+                        }
+                        
+                        // 如果找到了有效的下一行，添加到SIF段
+                        if (nextLineIndex <= endIndex)
+                        {
+                            sifSegment.Add(ERACodeLineFactory.CreateFromLine(codeLines[nextLineIndex]));
+                            i = nextLineIndex; // 跳过已处理的行
+                        }
                     }
 
                     parent.Add(sifSegment);
