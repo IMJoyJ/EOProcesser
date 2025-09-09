@@ -7,11 +7,21 @@ using System.Threading.Tasks;
 
 namespace EOProcesser.Models
 {
-    internal class DeckEditorFile : IEnumerable<DeckEditorDeck>
+    public class DeckEditorFile : IEnumerable<DeckEditorDeck>
     {
         public List<DeckEditorDeck> DeckEditorDecks = [];
         public List<ERACodeMultiLines> ExtraLines = [];
         public string DeckFile = "";
+
+        public string GetExtraFunctionContent()
+        {
+            StringBuilder sb = new();
+            foreach(var content in ExtraLines)
+            {
+                sb.AppendLine(content.ToString());
+            }
+            return sb.ToString();
+        }
 
         public DeckEditorFile(string file)
         {
@@ -32,10 +42,33 @@ namespace EOProcesser.Models
                 }
                 else if (code is ERACodeFuncSegment funcSegment)
                 {
+                    // 関数セグメントの末尾にあるコメント行を抽出
+                    List<ERACodeCommentLine> trailingComments = [];
+                    List<ERACode> funcCodes = funcSegment.codes.ToList();
+                    
+                    // 末尾から逆順に走査し、連続するコメント行を見つける
+                    for (int i = funcCodes.Count - 1; i >= 0; i--)
+                    {
+                        if (funcCodes[i] is ERACodeCommentLine trailingComment)
+                        {
+                            trailingComments.Insert(0, trailingComment); // 順序を保持するために先頭に挿入
+                            funcCodes.RemoveAt(i); // 関数セグメントから削除
+                        }
+                        else
+                        {
+                            // コメント行でない要素に到達したら終了
+                            break;
+                        }
+                    }
+                    
+                    // 関数セグメントからコメントを削除した新しいセグメントを作成
+                    var cleanedFuncSegment = new ERACodeFuncSegment(funcSegment.FuncName);
+                    cleanedFuncSegment.AddRange(funcCodes);
+                    
                     // コメント行と関数セグメントで新しいセグメントを作成
                     var segment = new ERACodeMultiLines();
                     segment.AddRange(commentLines);
-                    segment.Add(funcSegment);
+                    segment.Add(cleanedFuncSegment);
                     
                     // デッキとして初期化を試みる
                     try
@@ -49,8 +82,8 @@ namespace EOProcesser.Models
                         ExtraLines.Add(segment);
                     }
                     
-                    // 次のセグメント用にコメント行をクリア
-                    commentLines.Clear();
+                    // 次のセグメント用にコメント行を設定（関数末尾から抽出したコメント）
+                    commentLines = trailingComments;
                 }
                 else if (!string.IsNullOrWhiteSpace(code.ToString().Trim()))
                 {
@@ -62,7 +95,7 @@ namespace EOProcesser.Models
             // 残りのコメント行があれば追加
             if (commentLines.Count > 0)
             {
-                ExtraLines.Add([.. commentLines]);
+                ExtraLines.Add(new ERACodeMultiLines(commentLines));
             }
         }
 
@@ -73,12 +106,19 @@ namespace EOProcesser.Models
 
         public string ToFileContent()
         {
-            ERACodeMultiLines lines = [.. ExtraLines];
-            foreach (var deck in DeckEditorDecks)
+            StringBuilder sb = new();
+            sb.AppendLine(GetExtraFunctionContent());
+            foreach(var deck in DeckEditorDecks)
             {
-                lines.AddRange(deck.ToFunction());
+                sb.AppendLine(deck.ToFunction().ToString());
             }
-            return lines.ToString();
+            return sb.ToString();
+        }
+
+        public void SaveToFile(string? file = null)
+        {
+            file ??= DeckFile;
+            File.WriteAllText(file, ToFileContent());
         }
 
         IEnumerator IEnumerable.GetEnumerator()

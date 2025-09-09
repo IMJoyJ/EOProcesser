@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EOProcesser.Models
 {
-    internal class DeckEditorDeck
+    public class DeckEditorDeck
     {
         public List<int> MainDeckContent;
         public List<int> ExtraDeckContent;
@@ -16,6 +16,14 @@ namespace EOProcesser.Models
         public override string ToString()
         {
             return $"({DeckId}):{DeckName}";
+        }
+        public DeckEditorDeck(int deckId, string deckName)
+        {
+            DeckId = deckId;
+            DeckName = deckName;
+            MainDeckContent = [];
+            ExtraDeckContent = [];
+            commentLines = [];
         }
         public DeckEditorDeck(ERACodeMultiLines initCodes)
         {
@@ -54,7 +62,7 @@ namespace EOProcesser.Models
             }
 
             // 関数名からデッキIDを解析
-            string funcName = funcSegment.FuncName;
+            string funcName = funcSegment.FuncName.Split('(')[0];
             if (!funcName.StartsWith("DUELDECK_") || !int.TryParse(funcName.Substring(9), out int deckId))
             {
                 throw new Exception($"無効なデッキ関数名: {funcName}");
@@ -69,37 +77,12 @@ namespace EOProcesser.Models
             // 関数の内容を走査
             foreach (var code in funcSegment)
             {
-                if (code is ERACodeGenericLine genericLine)
+                if (code.ToString().Trim().StartsWith('@'))
                 {
-                    string line = genericLine.CodeLine.Trim();
-
-                    // 空行を無視
-                    if (string.IsNullOrWhiteSpace(line))
-                        continue;
-
-                    // DIMS宣言をチェック
-                    if (line == "#DIMS DYNAMIC 決闘者")
-                    {
-                        foundDims = true;
-                        continue;
-                    }
-
-                    // RESULTS行をチェック
-                    if (line.StartsWith("RESULTS = "))
-                    {
-                        DeckName = line.Substring(9).Trim();
-                        foundResults = true;
-                        continue;
-                    }
-
-                    // SETVAR行をチェック
-                    if (line.StartsWith("SETVAR "))
-                    {
-                        ParseSetVarLine(line);
-                        continue;
-                    }
+                    //関数名を無視
+                    continue;
                 }
-                else if (code is ERACodeSIfSegment sifSegment &&
+                if (code is ERACodeSIfSegment sifSegment &&
                         sifSegment.Condition == "決闘者 == \"存在確認\"")
                 {
                     // RETURN 1が含まれているかチェック
@@ -121,8 +104,40 @@ namespace EOProcesser.Models
                     }
                     throw new Exception("デッキ関数内の無効なSIFセグメント");
                 }
-                else if (code is not null && !string.IsNullOrWhiteSpace(code.ToString().Trim()))
+                else
                 {
+                    string line = code.ToString().Trim();
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        continue;
+                    }
+
+                    // DIMS宣言をチェック
+                    if (line == "#DIMS DYNAMIC 決闘者")
+                    {
+                        foundDims = true;
+                        continue;
+                    }
+
+                    // RESULTS行をチェック
+                    if (line.StartsWith("RESULTS ="))
+                    {
+                        DeckName = line[8..].Trim();
+                        foundResults = true;
+                        continue;
+                    }
+
+                    // SETVAR行をチェック
+                    if (line.StartsWith("SETVAR "))
+                    {
+                        ParseSetVarLine(line);
+                        continue;
+                    }
+
+                    if (line.StartsWith(';'))
+                    {
+                        continue;
+                    }
                     // 予期しないコード
                     throw new Exception($"デッキ関数内の予期しないコード: {code}");
                 }
@@ -152,8 +167,8 @@ namespace EOProcesser.Models
                 throw new Exception($"無効なSETVAR行: {line}");
             }
             
-            string varPart = line.Substring(7, commaPos - 7).Trim();
-            string valuePart = line.Substring(commaPos + 1).Trim();
+            string varPart = line[7..commaPos].Trim();
+            string valuePart = line[(commaPos + 1)..].Trim();
             
             // カードIDを解析
             if (!int.TryParse(valuePart, out int cardId))
