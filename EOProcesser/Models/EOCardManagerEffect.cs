@@ -174,18 +174,27 @@ namespace EOProcesser
             }
 
             // 2. 处理条件和效果代码
+            // 创建条件映射字典
+            Dictionary<string, EOCardManagerEffect> conditionMap = new();
+            
+            // 初始化所有效果的条件为null，以便后续识别
+            foreach (var effect in effects)
+            {
+                effect.Condition = null;
+            }
+
             // 处理Can函数
             var canFunc = card.GetCardCanFunc();
             if (canFunc != null)
             {
-                ProcessFunctionSegment(canFunc, effects, result.CanDefinition, true);
+                ProcessFunctionSegment(canFunc, effects, result.CanDefinition, conditionMap, true);
             }
             
             // 处理Effect函数
             var effectFunc = card.GetCardEffectFunc();
             if (effectFunc != null)
             {
-                ProcessFunctionSegment(effectFunc, effects, result.EffectDefinition, false);
+                ProcessFunctionSegment(effectFunc, effects, result.EffectDefinition, conditionMap, false);
             }
 
             // 处理额外的函数
@@ -195,13 +204,105 @@ namespace EOProcesser
                 result.ExtraFuncs.Add(extraFunc);
             }
 
-            // 添加所有效果到结果
-            foreach (var effect in effects)
+            // 将conditionMap中的所有效果添加到结果
+            foreach (var effect in conditionMap.Values)
             {
                 result.Add(effect);
             }
+            
+            // 添加所有未匹配条件的效果
+            foreach (var effect in effects)
+            {
+                if (effect.Condition == null)
+                {
+                    effect.Condition = ""; // 设置为空字符串，表示没有条件
+                    result.Add(effect);
+                }
+            }
+            
             return result;
         }
+
+        private static void ProcessFunctionSegment(ERACodeFuncSegment func, List<EOCardManagerEffect> effects, ERACodeMultiLines prefixCodes, Dictionary<string, EOCardManagerEffect> conditionMap, bool isCan)
+        {
+            // 查找IF语句
+            var ifSegments = func.Where(c => c is ERACodeIfSegment).Cast<ERACodeIfSegment>().ToList();
+
+            // 提取IF语句前的代码作为前缀
+            bool foundIf = false;
+            foreach (var code in func)
+            {
+                // 检查是否是函数定义
+                if (code.ToString().Trim().StartsWith('@'))
+                {
+                    continue;
+                }
+
+                if (code is ERACodeIfSegment)
+                {
+                    foundIf = true;
+                    break;
+                }
+
+                if (!foundIf)
+                {
+                    prefixCodes.Add(code);
+                }
+            }
+
+            // 如果没有IF语句，所有代码都是前缀
+            if (ifSegments.Count == 0)
+            {
+                return;
+            }
+
+            // 处理所有IF语句
+            foreach (var ifSegment in ifSegments)
+            {
+                ProcessIfSegment(ifSegment, effects, conditionMap, isCan);
+            }
+        }
+
+        private static void ProcessIfSegment(ERACodeIfSegment ifSegment, List<EOCardManagerEffect> effects, Dictionary<string, EOCardManagerEffect> conditionMap, bool isCan)
+        {
+            // 处理主IF条件
+            ProcessCondition(ifSegment.Condition, ifSegment.codes, effects, conditionMap, isCan);
+            
+            // 处理所有ELSEIF和ELSE条件
+            foreach (var elseSegment in ifSegment.ElseSegments)
+            {
+                string condition = elseSegment.Condition ?? "ELSE";
+                ProcessCondition(condition, [..elseSegment.Codes], effects, conditionMap, isCan);
+            }
+        }
+
+        private static void ProcessCondition(string condition, List<ERACode> codeBlock, List<EOCardManagerEffect> effects, Dictionary<string, EOCardManagerEffect> conditionMap, bool isCan)
+        {
+            // 尝试从conditionMap获取现有效果，如果不存在则创建新的
+            if (!conditionMap.TryGetValue(condition, out EOCardManagerEffect? effect))
+            {
+                // 尝试从effects中找到一个未分配条件的效果
+                effect = effects.FirstOrDefault(e => e.Condition == null);
+                
+                // 如果没有找到未分配的效果，创建一个新的
+                effect ??= new EOCardManagerEffect();
+                
+                // 设置条件并添加到映射
+                effect.Condition = condition;
+                conditionMap[condition] = effect;
+            }
+            
+            // 根据是Can还是Effect，添加代码块
+            if (isCan)
+            {
+                effect.CanFuncs.AddRange(codeBlock);
+            }
+            else
+            {
+                effect.EffectFuncs.AddRange(codeBlock);
+            }
+        }
+
         public List<TreeNode> GetTreeNodes()
         {
             // 创建根节点
@@ -248,106 +349,6 @@ namespace EOProcesser
             return [rootNode];
         }
 
-        private static void ProcessFunctionSegment(ERACodeFuncSegment func, List<EOCardManagerEffect> effects, ERACodeMultiLines prefixCodes, bool isCan)
-        {
-            // 查找IF语句
-            var ifSegments = func.Where(c => c is ERACodeIfSegment).Cast<ERACodeIfSegment>().ToList();
-
-            if (ifSegments.Count > 1)
-            {
-                throw new InvalidOperationException($"Expected only one IF segment in function {func.FuncName}, but found {ifSegments.Count}");
-            }
-
-            // 如果没有IF语句，所有代码都是前缀
-            if (ifSegments.Count == 0)
-            {
-                foreach (var code in func)
-                {
-                    if (!code.ToString().Trim().StartsWith('@'))
-                    {
-                        prefixCodes.Add(code);
-                    }
-                }
-                return;
-            }
-
-            // 提取IF语句前的代码作为前缀
-            bool foundIf = false;
-            foreach (var code in func)
-            {
-                // 检查是否是函数定义
-                if (code.ToString().Trim().StartsWith('@'))
-                {
-                    continue;
-                }
-
-                if (code is ERACodeIfSegment)
-                {
-                    foundIf = true;
-                    break;
-                }
-
-                if (!foundIf)
-                {
-                    prefixCodes.Add(code);
-                }
-            }
-
-            // 处理IF语句
-            var ifSegment = ifSegments[0];
-
-            // 匹配效果数量
-            int effectCount = effects.Count;
-            int conditionCount = 1 + ifSegment.ElseSegments.Count; // IF + ELSEIF/ELSE
-
-            // 确保条件和效果数量匹配
-            while (effectCount < conditionCount)
-            {
-                // 需要创建新的效果条目
-                effects.Add(new EOCardManagerEffect());
-                effectCount++;
-            }
-
-            // 设置主IF条件和代码
-            effects[0].Condition = ifSegment.Condition;
-            if (isCan)
-            {
-                foreach (var code in ifSegment.codes)
-                {
-                    effects[0].CanFuncs.Add(code);
-                }
-            }
-            else
-            {
-                foreach (var code in ifSegment.codes)
-                {
-                    effects[0].EffectFuncs.Add(code);
-                }
-            }
-
-            // 设置ELSEIF/ELSE条件和代码
-            for (int i = 0; i < ifSegment.ElseSegments.Count; i++)
-            {
-                var elseSegment = ifSegment.ElseSegments[i];
-                effects[i + 1].Condition = elseSegment.Condition ?? "ELSE";
-
-                if (isCan)
-                {
-                    foreach (var code in elseSegment.Codes)
-                    {
-                        effects[i + 1].CanFuncs.Add(code);
-                    }
-                }
-                else
-                {
-                    foreach (var code in elseSegment.Codes)
-                    {
-                        effects[i + 1].EffectFuncs.Add(code);
-                    }
-                }
-            }
-        }
-
         public bool IsRogue = false;
         ERACodeMultiLines EffectDefinition = [];
         ERACodeMultiLines CanDefinition = [];
@@ -364,9 +365,34 @@ namespace EOProcesser
             int index = -1;
             if (IsRogue)
             {
-                lines.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
+                // Find the first line that starts with PRINT
+                int printLineIndex = -1;
+                for (int i = 0; i < DescriptionDefinition.Count(); i++)
+                {
+                    if (DescriptionDefinition.codes[i].ToString().Trim().StartsWith("PRINT"))
+                    {
+                        printLineIndex = i;
+                        break;
+                    }
+                }
+
+                // Insert the ROGUE text decoration before the first PRINT line or at the beginning
+                if (printLineIndex >= 0)
+                {
+                    lines.AddRange(DescriptionDefinition.Take(printLineIndex));
+                    lines.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
+                    lines.AddRange(DescriptionDefinition.Skip(printLineIndex));
+                }
+                else
+                {
+                    lines.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
+                    lines.AddRange([..DescriptionDefinition]);
+                }
             }
-            lines.AddRange([..DescriptionDefinition]);
+            else
+            {
+                lines.AddRange([..DescriptionDefinition]);
+            }
             foreach(EOCardManagerEffect effect in effects)
             {
                 string? no = "";
@@ -565,7 +591,11 @@ namespace EOProcesser
         public TreeNode[] GetTreeNodes()
         {
             // 创建父节点，使用效果编号或描述作为显示文本
-            string displayText = EffectNo != null ? $"效果{EffectNo}" : "效果(自動数え)";
+            string displayText = EffectNo != null ? $"効果{EffectNo}" : "効果(自動数え)";
+            if (!string.IsNullOrEmpty(Condition))
+            {
+                displayText += $" [{Condition}]";
+            }
             TreeNode rootNode = new(displayText) { Tag = this };
 
             // 添加条件子节点

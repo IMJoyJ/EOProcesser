@@ -1569,18 +1569,19 @@ namespace EOProcesser
                         {
                             List<TreeNode> effectNodes = [.. treeCardEffectList.Nodes[0].Nodes[4].Nodes.Cast<TreeNode>()];
                             ERACodeFuncSegment explanationFunc = new($"CARD_EXPLANATION_{CurrentCard.CardId}(種類)");
+                            bool rogueWritten = false;
                             //効果文定義
                             foreach (TreeNode node in treeCardEffectList.Nodes[0].Nodes[0].Nodes)
                             {
                                 if (node.Tag is ERACode code)
                                 {
+                                    if (!rogueWritten && checkIsRogueCard.Checked && code.ToString().StartsWith("PRINTL"))
+                                    {
+                                        explanationFunc.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
+                                        rogueWritten = true;
+                                    }
                                     explanationFunc.Add(code);
                                 }
-                            }
-
-                            if (checkIsRogueCard.Checked)
-                            {
-                                explanationFunc.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
                             }
 
                             int effectIndex = 0;
