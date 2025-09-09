@@ -71,7 +71,7 @@ namespace EOProcesser
                         {
                             if (int.TryParse(match.Groups[1].Value, out int cardId))
                             {
-                                cardDic[cardId] = file;
+                                cardDic[cardId] = match.Groups[2].Value;
                             }
                         }
                     }
@@ -517,23 +517,34 @@ namespace EOProcesser
             {
                 Invoke(new Action(() =>
                 {
-                    treeCards.Nodes.Clear();
-                    treeCards.Nodes.Add(node);
+                    treeCardFiles.Nodes.Clear();
+                    treeCardFiles.Nodes.Add(node);
                     node.Expand();
                 }));
             }
+            Invoke(() =>
+            {
+                lbBeforeInit.Text = "初期化しています…";
+            });
+            deDeckEditor.LoadFolder(settings.DeckFolder, cardDic);
+            Invoke(() => 
+            {
+                lbBeforeInit.Visible = false;
+                deDeckEditor.Visible = true;
+            });
+            
         }
 
         private void bwLoadCards_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
         {
-            txtSearchCard.Enabled = false;
-            txtSearchCard.Text = $"Loaded {loadedCards}/{allCards} cards...";
+            txtSearchCardFiles.Enabled = false;
+            txtSearchCardFiles.Text = $"Loaded {loadedCards}/{allCards} cards...";
         }
 
         private void bwLoadCards_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
-            txtSearchCard.Text = "";
-            txtSearchCard.Enabled = true;
+            txtSearchCardFiles.Text = "";
+            txtSearchCardFiles.Enabled = true;
         }
 
         private void txtSearchCard_TextChanged(object sender, EventArgs e)
@@ -551,8 +562,7 @@ namespace EOProcesser
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            Utils.SearchTreeViewWithString(txtSearchCard.Text, treeCards);
-            return;
+            Utils.SearchTreeViewWithString(txtSearchCardFiles.Text, treeCardFiles);
         }
         private void ClearAll()
         {
@@ -1429,7 +1439,7 @@ namespace EOProcesser
                 }
                 else
                 {
-                    treeCards.Nodes.AddRange([.. card.GetTreeNodes()]);
+                    treeCardFiles.Nodes.AddRange([.. card.GetTreeNodes()]);
                 }
 
                 SaveCurrentCard();
@@ -1907,16 +1917,16 @@ namespace EOProcesser
                 else
                 {
                     // If it's a root node, find its index in the treeView's root collection
-                    int nodeIndex = treeCards.Nodes.IndexOf(CurrentEditingTreeNode);
+                    int nodeIndex = treeCardFiles.Nodes.IndexOf(CurrentEditingTreeNode);
                     if (nodeIndex >= 0)
                     {
                         // Remove the old node
-                        treeCards.Nodes.RemoveAt(nodeIndex);
+                        treeCardFiles.Nodes.RemoveAt(nodeIndex);
 
                         // Insert the new nodes at the same position
                         foreach (TreeNode newNode in newNodes)
                         {
-                            treeCards.Nodes.Insert(nodeIndex++, newNode);
+                            treeCardFiles.Nodes.Insert(nodeIndex++, newNode);
                         }
                     }
                 }
