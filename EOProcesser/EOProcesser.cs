@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using System.Text;
 using EOProcesser.Forms;
 using static System.Windows.Forms.LinkLabel;
+using System.Text.RegularExpressions;
 
 namespace EOProcesser
 {
@@ -24,6 +25,7 @@ namespace EOProcesser
         }
 
         ERAOCGCardManagerSettings settings = new();
+        Dictionary<int, string> cardDic = [];
 
         private void EOProcesser_Load(object sender, EventArgs e)
         {
@@ -55,6 +57,30 @@ namespace EOProcesser
                 // 收集所有.erb文件
                 var allErbFiles = new List<string>();
                 CollectAllErbFiles(settings.CardFolder, allErbFiles);
+                // 使用正则表达式提取卡片ID和卡名
+                var regex = new Regex(@"(\d+)_(.+?)\.[Ee][Rr][Bb]");
+
+                foreach (var file in allErbFiles)
+                {
+                    try
+                    {
+                        string content = new FileInfo(file).Name;
+                        var matches = regex.Matches(content);
+
+                        foreach (System.Text.RegularExpressions.Match match in matches)
+                        {
+                            if (int.TryParse(match.Groups[1].Value, out int cardId))
+                            {
+                                cardDic[cardId] = file;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // 忽略读取文件时的错误，继续处理其他文件
+                    }
+                }
+
                 allCards = allErbFiles.Count;
 
                 // 获取所有子目录
@@ -514,70 +540,6 @@ namespace EOProcesser
         {
         }
 
-        private void ShowAllNodes(TreeNodeCollection nodes)
-        {
-            foreach (TreeNode node in nodes)
-            {
-                // Reset all visual indicators
-                node.ForeColor = SystemColors.WindowText;  // Reset color to default
-                node.BackColor = SystemColors.Window;      // Reset background color
-                node.Checked = false;                      // Uncheck the node
-
-                // Recursively reset all child nodes
-                if (node.Nodes.Count > 0)
-                {
-                    ShowAllNodes(node.Nodes);
-                    node.Collapse();  // Collapse after processing children for proper state reset
-                }
-            }
-        }
-
-        private bool SearchNodes(TreeNode node, string searchText)
-        {
-            // Flag to track if this node or any child nodes match the search
-            bool anyMatches = false;
-
-            // Check if the current node text matches the search criteria
-            bool currentNodeMatches = node.Text.Contains(searchText, StringComparison.CurrentCultureIgnoreCase);
-            if (currentNodeMatches)
-            {
-                node.ForeColor = Color.Blue;  // Highlight matching nodes
-                node.BackColor = Color.LightYellow;
-                node.Checked = true;
-                anyMatches = true;
-            }
-            else
-            {
-                // Reset this node's appearance if it doesn't match
-                node.ForeColor = SystemColors.WindowText;
-                node.BackColor = SystemColors.Window;
-                node.Checked = false;
-            }
-
-            // Recursively search child nodes
-            bool childrenMatch = false;
-            foreach (TreeNode childNode in node.Nodes)
-            {
-                if (SearchNodes(childNode, searchText))
-                {
-                    childrenMatch = true;
-                }
-            }
-
-            // If any children match, expand this node and mark it as having matches
-            if (childrenMatch)
-            {
-                node.Expand();
-                anyMatches = true;
-            }
-            else if (!currentNodeMatches)
-            {
-                node.Collapse();
-            }
-
-            return anyMatches;
-        }
-
         private void txtSearchCard_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -589,23 +551,8 @@ namespace EOProcesser
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            if (!txtSearchCard.Enabled)
-            {
-                return;
-            }
-            string searchText = txtSearchCard.Text.Trim().ToLower();
-            if (string.IsNullOrEmpty(searchText))
-            {
-                // If search text is empty, show all nodes
-                ShowAllNodes(treeCards.Nodes);
-                return;
-            }
-
-            // Start the search process
-            foreach (TreeNode node in treeCards.Nodes)
-            {
-                SearchNodes(node, searchText);
-            }
+            Utils.SearchTreeViewWithString(txtSearchCard.Text, treeCards);
+            return;
         }
         private void ClearAll()
         {
