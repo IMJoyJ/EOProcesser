@@ -122,7 +122,7 @@ namespace EOProcesser.Models
                     // RESULTS行をチェック
                     if (line.StartsWith("RESULTS ="))
                     {
-                        DeckName = line[8..].Trim();
+                        DeckName = line[9..].Trim();
                         foundResults = true;
                         continue;
                     }
