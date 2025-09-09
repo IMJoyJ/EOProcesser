@@ -60,6 +60,8 @@
             listExtraDeck = new ListBox();
             listMainDeck = new ListBox();
             listCardDictionary = new ListBox();
+            btnLoadDeckFromFile = new Button();
+            btnExportToFile = new Button();
             ((System.ComponentModel.ISupportInitialize)mainContainer).BeginInit();
             mainContainer.Panel1.SuspendLayout();
             mainContainer.Panel2.SuspendLayout();
@@ -236,6 +238,8 @@
             // 
             // tabDeckEditor
             // 
+            tabDeckEditor.Controls.Add(btnExportToFile);
+            tabDeckEditor.Controls.Add(btnLoadDeckFromFile);
             tabDeckEditor.Controls.Add(label2);
             tabDeckEditor.Controls.Add(txtDeckName);
             tabDeckEditor.Controls.Add(label1);
@@ -430,8 +434,28 @@
             listCardDictionary.ItemHeight = 15;
             listCardDictionary.Location = new Point(3, 38);
             listCardDictionary.Name = "listCardDictionary";
-            listCardDictionary.Size = new Size(151, 319);
+            listCardDictionary.Size = new Size(151, 289);
             listCardDictionary.TabIndex = 0;
+            // 
+            // btnLoadDeckFromFile
+            // 
+            btnLoadDeckFromFile.Location = new Point(3, 333);
+            btnLoadDeckFromFile.Name = "btnLoadDeckFromFile";
+            btnLoadDeckFromFile.Size = new Size(75, 23);
+            btnLoadDeckFromFile.TabIndex = 12;
+            btnLoadDeckFromFile.Text = "ファイル読込";
+            btnLoadDeckFromFile.UseVisualStyleBackColor = true;
+            btnLoadDeckFromFile.Click += btnLoadDeckFromFile_Click;
+            // 
+            // btnExportToFile
+            // 
+            btnExportToFile.Location = new Point(79, 333);
+            btnExportToFile.Name = "btnExportToFile";
+            btnExportToFile.Size = new Size(75, 23);
+            btnExportToFile.TabIndex = 12;
+            btnExportToFile.Text = "ファイル出力";
+            btnExportToFile.UseVisualStyleBackColor = true;
+            btnExportToFile.Click += btnExportToFile_Click;
             // 
             // DeckEditor
             // 
@@ -488,5 +512,7 @@
         private TextBox txtExtraFunctions;
         private Button btnMinus1ToMainDeck;
         private Button btnMinus1ToExtraDeck;
+        private Button btnExportToFile;
+        private Button btnLoadDeckFromFile;
     }
 }

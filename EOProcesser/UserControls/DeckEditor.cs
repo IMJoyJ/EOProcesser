@@ -764,5 +764,160 @@ namespace EOProcesser
         private void txtExtraFunctions_TextChanged(object sender, EventArgs e)
         {
         }
+
+        private void btnExportToFile_Click(object sender, EventArgs e)
+        {
+            if (CurrentDeckEditorDeck != null)
+            {
+                SaveFileDialog saveDialog = new()
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    Title = "デッキ出力先",
+                    DefaultExt = "txt"
+                };
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using StreamWriter writer = new(saveDialog.FileName);
+                        // メインデッキのカードIDを書き込む
+                        foreach (var cardId in CurrentDeckEditorDeck.MainDeckContent)
+                        {
+                            writer.WriteLine(cardId);
+                        }
+
+                        // メインデッキとエクストラデッキの間に2行の空行を挿入
+                        writer.WriteLine();
+                        writer.WriteLine();
+
+                        // エクストラデッキのカードIDを書き込む
+                        foreach (var cardId in CurrentDeckEditorDeck.ExtraDeckContent)
+                        {
+                            writer.WriteLine(cardId);
+                        }
+
+                        MessageBox.Show("デッキが正常にエクスポートされました。", "エクスポート完了",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"エクスポート中にエラーが発生しました: {ex.Message}", "エラー",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("エクスポートするデッキが選択されていません。", "エラー",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void btnLoadDeckFromFile_Click(object sender, EventArgs e)
+        {
+            if (CurrentDeckEditorDeck != null)
+            {
+                OpenFileDialog openDialog = new()
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    Title = "デッキファイル選択"
+                };
+
+                if (openDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string[] lines = File.ReadAllLines(openDialog.FileName);
+                        
+                        // 空行が2行以上連続する位置を探してMain/Extraの区切りとする
+                        int separatorIndex = -1;
+                        int emptyLineCount = 0;
+                        
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            if (string.IsNullOrWhiteSpace(lines[i]))
+                            {
+                                emptyLineCount++;
+                                if (emptyLineCount >= 2)
+                                {
+                                    separatorIndex = i - 1;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                emptyLineCount = 0;
+                            }
+                        }
+
+                        // ユーザーに現在のデッキをクリアするか確認
+                        DialogResult dResult = MessageBox.Show(
+                            "現在のデッキをクリアしますか？\n「いいえ」を選択すると、カードが追加されます。",
+                            "デッキ読み込み",
+                            MessageBoxButtons.YesNoCancel,
+                            MessageBoxIcon.Question);
+
+                        switch (dResult)
+                        {
+                            case DialogResult.Yes:
+                                CurrentDeckEditorDeck.MainDeckContent.Clear();
+                                CurrentDeckEditorDeck.ExtraDeckContent.Clear();
+                                listMainDeck.Items.Clear();
+                                listExtraDeck.Items.Clear();
+                                break;
+                            case DialogResult.Cancel:
+                                return;
+                        }
+                        
+                        // メインデッキのカードを読み込む
+                        for (int i = 0; i < lines.Length && (separatorIndex == -1 || i < separatorIndex); i++)
+                        {
+                            string line = lines[i].Trim();
+                            if (string.IsNullOrWhiteSpace(line)) continue;
+
+                            if (int.TryParse(line, out int cardId))
+                            {
+                                CurrentDeckEditorDeck.MainDeckContent.Add(cardId);
+                                var card = CardList.FirstOrDefault(x => x.CardId == cardId);
+                                listMainDeck.Items.Add(card != null ? new EOCard(card) : new EOCard(cardId, "（不明なカード）"));
+                            }
+                        }
+
+                        // エクストラデッキのカードを読み込む
+                        if (separatorIndex != -1)
+                        {
+                            for (int i = separatorIndex + 2; i < lines.Length; i++) // +2 で空行をスキップ
+                            {
+                                string line = lines[i].Trim();
+                                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                                if (int.TryParse(line, out int cardId))
+                                {
+                                    CurrentDeckEditorDeck.ExtraDeckContent.Add(cardId);
+                                    var card = CardList.FirstOrDefault(x => x.CardId == cardId);
+                                    listExtraDeck.Items.Add(card != null ? new EOCard(card) : new EOCard(cardId, "（不明なカード）"));
+                                }
+                            }
+                        }
+
+                        RefreshDeckCount();
+                        MessageBox.Show("デッキを正常に読み込みました。", "読み込み完了",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"デッキ読み込み中にエラーが発生しました: {ex.Message}", "エラー",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("デッキが選択されていません。", "エラー",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+        }
     }
 }
