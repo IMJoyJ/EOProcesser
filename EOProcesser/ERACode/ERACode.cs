@@ -80,7 +80,7 @@ namespace EOProcesser
             {
                 sb.AppendLine(EndCode.ToString());
             }
-            return sb.ToString();
+            return Utils.TrimCode(sb.ToString());
         }
 
         public void Add(ERACode code)
@@ -103,6 +103,11 @@ namespace EOProcesser
                 code.Indentation = this.Indentation;
                 codes.Add(code);
             }
+        }
+
+        public void RemoveAt(int index)
+        {
+            this.Remove(codes[index]);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
