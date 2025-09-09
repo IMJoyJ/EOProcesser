@@ -39,6 +39,7 @@
             btnSelectDeckFolder = new Button();
             label3 = new Label();
             txtDeckFolder = new TextBox();
+            btnQuickSetting = new Button();
             SuspendLayout();
             // 
             // txtRootFolder
@@ -153,6 +154,17 @@
             txtDeckFolder.TabIndex = 8;
             txtDeckFolder.TextChanged += txtDeckFolder_TextChanged;
             // 
+            // btnQuickSetting
+            // 
+            btnQuickSetting.Location = new Point(228, 84);
+            btnQuickSetting.Margin = new Padding(1, 2, 1, 2);
+            btnQuickSetting.Name = "btnQuickSetting";
+            btnQuickSetting.Size = new Size(119, 22);
+            btnQuickSetting.TabIndex = 3;
+            btnQuickSetting.Text = "簡易設定";
+            btnQuickSetting.UseVisualStyleBackColor = true;
+            btnQuickSetting.Click += btnQuickSetting_Click;
+            // 
             // formSettings
             // 
             AcceptButton = btnConfirm;
@@ -167,6 +179,7 @@
             Controls.Add(label2);
             Controls.Add(txtCardFolder);
             Controls.Add(btnCancel);
+            Controls.Add(btnQuickSetting);
             Controls.Add(btnConfirm);
             Controls.Add(btnSelectRootFolder);
             Controls.Add(label1);
@@ -194,5 +207,6 @@
         private Button btnSelectDeckFolder;
         private Label label3;
         private TextBox txtDeckFolder;
+        private Button btnQuickSetting;
     }
 }

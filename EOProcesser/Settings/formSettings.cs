@@ -98,5 +98,68 @@ namespace EOProcesser
         {
             Settings.DeckFolder = txtDeckFolder.Text;
         }
+        private void btnQuickSetting_Click(object sender, EventArgs e)
+        {
+            using OpenFileDialog fileDialog = new();
+            fileDialog.Title = "ゲーム実行ファイルを選択してください";
+            fileDialog.Filter = "実行ファイル (*.exe)|*.exe";
+            fileDialog.CheckFileExists = true;
+
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // ゲーム実行ファイルのディレクトリを取得
+                    string gameDirectory = Path.GetDirectoryName(fileDialog.FileName) ?? "";
+                    
+                    if (string.IsNullOrEmpty(gameDirectory))
+                    {
+                        MessageBox.Show("ゲームディレクトリを取得できませんでした。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // 各フォルダのパスを設定
+                    string rootFolder = Path.Combine(gameDirectory, "ERB");
+                    string cardFolder = Path.Combine(gameDirectory, "ERB", "10.デュエル関連", "02.CARDS");
+                    string deckFolder = Path.Combine(gameDirectory, "ERB", "10.デュエル関連", "03.デッキ編集", "デッキリスト");
+
+                    // フォルダの存在確認
+                    bool rootExists = Directory.Exists(rootFolder);
+                    bool cardExists = Directory.Exists(cardFolder);
+                    bool deckExists = Directory.Exists(deckFolder);
+
+                    // 結果メッセージを作成
+                    StringBuilder message = new();
+                    message.AppendLine("以下のフォルダを設定します：");
+                    message.AppendLine($"Root Folder: {rootFolder} {(rootExists ? "（存在）" : "（存在しません）")}");
+                    message.AppendLine($"Card Folder: {cardFolder} {(cardExists ? "（存在）" : "（存在しません）")}");
+                    message.AppendLine($"Deck Folder: {deckFolder} {(deckExists ? "（存在）" : "（存在しません）")}");
+                    message.AppendLine();
+                    message.AppendLine("続行しますか？");
+
+                    // 確認ダイアログを表示
+                    DialogResult result = MessageBox.Show(
+                        message.ToString(),
+                        "フォルダ設定の確認",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
+
+                    if (result == DialogResult.Yes)
+                    {
+                        // 設定を更新
+                        txtRootFolder.Text = rootFolder;
+                        txtCardFolder.Text = cardFolder;
+                        txtDeckFolder.Text = deckFolder;
+                        
+                        MessageBox.Show("フォルダ設定が完了しました。", "設定完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"エラーが発生しました：{ex.Message}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
     }
 }
