@@ -299,15 +299,12 @@ namespace EOProcesser
         private static readonly Dictionary<ListBox, string?> _listBoxOriginalDisplayMember = [];
         private static readonly Dictionary<ListBox, string?> _listBoxOriginalValueMember = [];
         /// <summary>
-        /// 针对 ListBox 的搜索过滤：
+        /// 针对 ListBox 的搜索过滤（多线程版本）：
         /// 1. 首次调用会拍下原始所有项（无论是否 DataSource 模式）；
-        ////   - 若原先为 DataSource：保存 DataSource / DisplayMember / ValueMember，并切换到 Items 模式以显示过滤结果
-        /// 2. 之后每次搜索都基于首次快照，不做“叠加过滤”；
-        /// 3. searchPattern 为空或全空白 => 还原：
-        ///    - 若初始为 DataSource => 恢复 DataSource 绑定；
-        ///    - 否则 => 恢复原 Items；
-        /// 4. 默认 judgeFunc：item.ToString() 大小写不敏感包含；
-        /// 5. 仅对能转换为 T 的项执行 judgeFunc，其余项在过滤状态下不显示（可按需改动）
+        /// 2. 之后每次搜索都基于首次快照，不做"叠加过滤"；
+        /// 3. searchPattern 为空或全空白 => 还原；
+        /// 4. 使用并行处理提高大数据集的过滤效率；
+        /// 5. 默认 judgeFunc：item.ToString() 大小写不敏感包含；
         /// 6. 返回匹配的 T 集合（清空搜索时返回全部 T）
         /// </summary>
         public static List<T> SearchListBoxWithString<T>(
@@ -411,22 +408,29 @@ namespace EOProcesser
                 listBox.DataSource = null; // 确保使用 Items 方式显示过滤结果
                 listBox.Items.Clear();
 
-                var matched = new List<T>();
-                foreach (var o in originalObjects)
+                // 使用并行处理进行过滤
+                var matchedItems = new System.Collections.Concurrent.ConcurrentBag<object>();
+                var matchedTypedItems = new System.Collections.Concurrent.ConcurrentBag<T>();
+                
+                Parallel.ForEach(originalObjects, item => 
                 {
-                    if (o is T tItem)
+                    if (item is T tItem)
                     {
                         if (judgeFunc(tItem, pattern))
                         {
-                            matched.Add(tItem);
-                            listBox.Items.Add(o);
+                            matchedItems.Add(item);
+                            matchedTypedItems.Add(tItem);
                         }
                     }
-                    // 不可转换为 T 的项若需要保留，可在此处考虑：
-                    // else listBox.Items.Add(o);
+                });
+
+                // 将匹配项添加到 ListBox
+                foreach (var item in matchedItems)
+                {
+                    listBox.Items.Add(item);
                 }
 
-                return matched;
+                return matchedTypedItems.ToList();
             }
             finally
             {
