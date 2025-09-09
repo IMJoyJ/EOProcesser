@@ -314,6 +314,7 @@ namespace EOProcesser
         {
             ArgumentNullException.ThrowIfNull(listBox);
 
+            listBox.BeginUpdate();
             // 首次初始化缓存
             if (!_listBoxOriginalItems.TryGetValue(listBox, out var originalObjects))
             {
@@ -366,7 +367,6 @@ namespace EOProcesser
 
             var wasDataBoundOriginal = _listBoxWasDataBound.TryGetValue(listBox, out var wdb) && wdb;
 
-            listBox.BeginUpdate();
             try
             {
                 // 清空搜索 => 恢复
