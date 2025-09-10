@@ -43,6 +43,7 @@
             tabExtraFuncs = new TabPage();
             txtExtraFunctions = new TextBox();
             tabDeckEditor = new TabPage();
+            btnCopyCode = new Button();
             btnExportToFile = new Button();
             btnLoadDeckFromFile = new Button();
             label2 = new Label();
@@ -238,6 +239,7 @@
             // 
             // tabDeckEditor
             // 
+            tabDeckEditor.Controls.Add(btnCopyCode);
             tabDeckEditor.Controls.Add(btnExportToFile);
             tabDeckEditor.Controls.Add(btnLoadDeckFromFile);
             tabDeckEditor.Controls.Add(label2);
@@ -264,10 +266,21 @@
             tabDeckEditor.Text = "デッキ編集";
             tabDeckEditor.UseVisualStyleBackColor = true;
             // 
+            // btnCopyCode
+            // 
+            btnCopyCode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnCopyCode.Location = new Point(3, 332);
+            btnCopyCode.Name = "btnCopyCode";
+            btnCopyCode.Size = new Size(151, 23);
+            btnCopyCode.TabIndex = 12;
+            btnCopyCode.Text = "コードをコピーする";
+            btnCopyCode.UseVisualStyleBackColor = true;
+            btnCopyCode.Click += btnCopyCode_Click;
+            // 
             // btnExportToFile
             // 
             btnExportToFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExportToFile.Location = new Point(79, 333);
+            btnExportToFile.Location = new Point(79, 303);
             btnExportToFile.Name = "btnExportToFile";
             btnExportToFile.Size = new Size(75, 23);
             btnExportToFile.TabIndex = 12;
@@ -278,7 +291,7 @@
             // btnLoadDeckFromFile
             // 
             btnLoadDeckFromFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoadDeckFromFile.Location = new Point(3, 333);
+            btnLoadDeckFromFile.Location = new Point(3, 303);
             btnLoadDeckFromFile.Name = "btnLoadDeckFromFile";
             btnLoadDeckFromFile.Size = new Size(75, 23);
             btnLoadDeckFromFile.TabIndex = 12;
@@ -456,7 +469,7 @@
             listCardDictionary.ItemHeight = 15;
             listCardDictionary.Location = new Point(3, 38);
             listCardDictionary.Name = "listCardDictionary";
-            listCardDictionary.Size = new Size(151, 289);
+            listCardDictionary.Size = new Size(151, 259);
             listCardDictionary.TabIndex = 0;
             // 
             // DeckEditor
@@ -516,5 +529,7 @@
         private Button btnMinus1ToExtraDeck;
         private Button btnExportToFile;
         private Button btnLoadDeckFromFile;
+        private Button btnCopyCode;
+        private Button btnOutputCode;
     }
 }

@@ -919,5 +919,13 @@ namespace EOProcesser
             }
 
         }
+
+        private void btnCopyCode_Click(object sender, EventArgs e)
+        {
+            if (CurrentDeckEditorDeck != null)
+            {
+                Clipboard.SetText(CurrentDeckEditorDeck.ToFunction().ToString());
+            }
+        }
     }
 }
