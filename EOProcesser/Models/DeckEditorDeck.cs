@@ -197,7 +197,7 @@ namespace EOProcesser.Models
         }
         public ERACodeMultiLines ToFunction()
         {
-            ERACodeFuncSegment segment = new($"DUELDECK_{DeckId}")
+            ERACodeFuncSegment segment = new($"DUELDECK_{DeckId}(決闘者)")
             {
                 "#DIMS DYNAMIC 決闘者",
                 "",
