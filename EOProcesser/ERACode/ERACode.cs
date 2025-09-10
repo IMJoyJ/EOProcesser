@@ -16,6 +16,10 @@ namespace EOProcesser
         abstract public override string ToString();
         abstract public int Indentation { get; set; }
         abstract public List<TreeNode> GetTreeNodes();
+        public virtual string GetIndentationTabString()
+        {
+            return new string('\t', Indentation);
+        }
     }
 
     public class ERACodeMultiLines : ERACode, IEnumerable<ERACode>
@@ -27,37 +31,28 @@ namespace EOProcesser
             set
             {
                 _indentation = value;
-                foreach (var code in codes)
-                {
-                    code.Indentation = value;
-                }
-                if (StartCode != null)
-                {
-                    StartCode.Indentation = value;
-                }
-                if (EndCode != null)
-                {
-                    EndCode.Indentation = value;
-                }
+                ResetIndentation();
+            }
+        }
+
+        public virtual void ResetIndentation(int baseValue = -1)
+        {
+            if (baseValue < 0)
+            {
+                baseValue = Indentation;
+            }
+            foreach (var code in codes)
+            {
+                code.Indentation = baseValue;
             }
         }
 
         internal readonly List<ERACode> codes = [];
-        internal ERACodeMultiLines? StartCode { get; set; }
-        internal ERACodeMultiLines? EndCode { get; set; }
         protected virtual string GetNodeText()
         {
-            if (StartCode != null)
-            {
-                return StartCode.ToString();
-            }
             if (codes.Count > 0)
             {
                 return codes[0].ToString();
-            }
-            if (EndCode != null)
-            {
-                return EndCode.ToString();
             }
             return "(NONE)";
         }
@@ -71,32 +66,28 @@ namespace EOProcesser
         public override string ToString()
         {
             StringBuilder sb = new();
-            if (StartCode != null)
+            ResetIndentation();
+            foreach (var code in codes)
             {
-                sb.Append(StartCode.ToString());
-            }
-            sb.AppendLine(string.Join("\r\n", codes.Select(code => code.ToString())));
-            if (EndCode != null)
-            {
-                sb.AppendLine(EndCode.ToString());
+                sb.Append(code.ToString());
             }
             return Utils.TrimCode(sb.ToString());
         }
 
-        public void Add(ERACode code)
+        public virtual void Add(ERACode code)
         {
             code.Indentation = this.Indentation;
             codes.Add(code);
         }
 
-        public void Add(string code)
+        public virtual void Add(string code)
         {
             var line = ERACodeLineFactory.CreateFromLine(code);
             line.Indentation = this.Indentation;
             codes.Add(line);
         }
 
-        public void AddRange(IEnumerable<ERACode> codeCollection)
+        public virtual void AddRange(IEnumerable<ERACode> codeCollection)
         {
             foreach (var code in codeCollection)
             {
@@ -112,37 +103,18 @@ namespace EOProcesser
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (StartCode != null)
-            {
-                yield return StartCode;
-            }
-
             foreach (var code in codes)
             {
                 yield return code;
             }
 
-            if (EndCode != null)
-            {
-                yield return EndCode;
-            }
         }
 
         virtual public IEnumerator<ERACode> GetEnumerator()
         {
-            if (StartCode != null)
-            {
-                yield return StartCode;
-            }
-
             foreach (var code in codes)
             {
                 yield return code;
-            }
-
-            if (EndCode != null)
-            {
-                yield return EndCode;
             }
         }
 
@@ -153,34 +125,31 @@ namespace EOProcesser
 
         internal void Remove(ERACode code)
         {
-            if (code == StartCode || code == EndCode)
-            {
-                return;
-            }
             codes.Remove(code);
         }
     }
 
     public class ERABlockSegment : ERACodeMultiLines
     {
-        private int _indentation;
-        public override int Indentation
+        public ERACodeMultiLines? StartCode = null;
+        public ERACodeMultiLines? EndCode = null;
+        public override void ResetIndentation(int baseValue = -1)
         {
-            get => _indentation;
-            set
+            if (baseValue < 0)
             {
-                _indentation = value;
-                foreach (var code in this)
-                {
-                    if (code != StartCode && code != EndCode)
-                    {
-                        code.Indentation = value + 1;
-                    }
-                    else
-                    {
-                        code.Indentation = value;
-                    }
-                }
+                baseValue = Indentation;
+            }
+            foreach (var code in codes)
+            {
+                code.Indentation = baseValue + 1;
+            }
+            if (StartCode != null)
+            {
+                StartCode.Indentation = baseValue;
+            }
+            if (EndCode != null)
+            {
+                EndCode.Indentation = baseValue;
             }
         }
         protected override string GetNodeText()
@@ -189,7 +158,6 @@ namespace EOProcesser
         }
         public ERABlockSegment(string startCode, string? endCode = null, IEnumerable<ERACode>? initialCodes = null)
         {
-
             StartCode = [ERACodeLineFactory.CreateFromLine(startCode)];
             if (endCode != null)
             {
@@ -199,7 +167,7 @@ namespace EOProcesser
             {
                 foreach (var code in initialCodes)
                 {
-                    code.Indentation = this.Indentation;
+                    code.Indentation = this.Indentation + 1;
                     codes.Add(code);
                 }
             }
@@ -245,6 +213,47 @@ namespace EOProcesser
                 }
             }
         }
+
+        public override void Add(ERACode code)
+        {
+            code.Indentation = this.Indentation + 1;
+            codes.Add(code);
+        }
+
+        public override void Add(string code)
+        {
+            var line = ERACodeLineFactory.CreateFromLine(code);
+            line.Indentation = this.Indentation + 1;
+            codes.Add(line);
+        }
+
+        public override void AddRange(IEnumerable<ERACode> codeCollection)
+        {
+            foreach (var code in codeCollection)
+            {
+                code.Indentation = this.Indentation + 1;
+                codes.Add(code);
+            }
+        }
+
+        public override string ToString()
+        {
+            ResetIndentation();
+            StringBuilder sb = new();
+            if (StartCode != null)
+            {
+                sb.AppendLine(StartCode.ToString().Trim('\r','\n'));
+            }
+            foreach(var code in codes)
+            {
+                sb.Append(code.ToString());
+            }
+            if (EndCode != null)
+            {
+                sb.AppendLine(EndCode.ToString().Trim('\r', '\n'));
+            }
+            return sb.ToString();
+        }
     }
     public class ERACodeFuncSegment : ERABlockSegment
     {
@@ -252,6 +261,26 @@ namespace EOProcesser
         public ERACodeFuncSegment(string funcName) : base($"@{funcName}")
         {
             FuncName = funcName;
+        }
+
+        public override void ResetIndentation(int baseValue = -1)
+        {
+            if (baseValue < 0)
+            {
+                baseValue = Indentation;
+            }
+            foreach (var code in codes)
+            {
+                code.Indentation = baseValue;
+            }
+            if (StartCode != null)
+            {
+                StartCode.Indentation = baseValue;
+            }
+            if (EndCode != null)
+            {
+                EndCode.Indentation = baseValue;
+            }
         }
 
         public ERACodeFuncSegment(string funcName, IEnumerable<ERACode> codes)
@@ -293,7 +322,7 @@ namespace EOProcesser
         {
             ERACodeSelectCaseSubCase subCase = new(caseValue, returnValue)
             {
-                Indentation = this.Indentation + 1
+                Indentation = this.Indentation
             };
             Add(subCase);
         }
@@ -307,7 +336,7 @@ namespace EOProcesser
         {
             ERACodeSelectCaseSubCase subCase = new(caseValue, codeSegment)
             {
-                Indentation = this.Indentation + 1
+                Indentation = this.Indentation
             };
             Add(subCase);
         }
@@ -333,7 +362,6 @@ namespace EOProcesser
         {
             CaseCondition = caseCond;
         }
-
         public string? GetValue()
         {
             var valList = GetValueList();
@@ -466,6 +494,32 @@ namespace EOProcesser
                 }
             }
         }
+        public override void ResetIndentation(int baseValue = -1)
+        {
+            if (baseValue < 0)
+            {
+                baseValue = Indentation;
+            }
+            foreach (var code in codes)
+            {
+                code.Indentation = baseValue + 1;
+            }
+            // 为开始和结束标记设置缩进
+            if (StartCode != null)
+            {
+                StartCode.Indentation = baseValue;
+            }
+            if (EndCode != null)
+            {
+                EndCode.Indentation = baseValue;
+            }
+            // 为所有ELSEIF和ELSE设置缩进
+            foreach (var elseSegment in elseSegments)
+            {
+                // ELSEIF/ELSE语句本身的缩进与IF相同
+                elseSegment.Indentation = baseValue;
+            }
+        }
         public string Condition { get; set; }
         private List<ERACodeElseSegment> elseSegments = [];
 
@@ -576,8 +630,9 @@ namespace EOProcesser
         }
         public override string ToString()
         {
+            ResetIndentation();
             StringBuilder sb = new();
-            string indentStr = new('\t', Indentation);
+            string indentStr = GetIndentationTabString();
             
             // Add IF statement
             sb.AppendLine($"{indentStr}IF {Condition}");
@@ -585,9 +640,8 @@ namespace EOProcesser
             // Add IF block code
             foreach (var code in codes)
             {
-                sb.AppendLine(code.ToString());
+                sb.Append(code.ToString());
             }
-            
             // Add ELSEIF and ELSE blocks if any
             foreach (var segment in elseSegments)
             {
@@ -604,12 +658,12 @@ namespace EOProcesser
                 // Add code in the ELSEIF or ELSE block
                 foreach (var code in segment.Codes)
                 {
-                    sb.AppendLine(code.ToString());
+                    sb.Append(code.ToString());
                 }
             }
             
             // Add ENDIF
-            sb.Append($"{indentStr}ENDIF");
+            sb.AppendLine($"{indentStr}ENDIF");
             
             return sb.ToString();
         }
@@ -714,13 +768,13 @@ namespace EOProcesser
         public string Condition { get; private set; }
 
         public ERACodeRepeatSegment(string condition)
-            : base("REPEAT {condition}", $"REND")
+            : base($"REPEAT {condition}", $"REND")
         {
             Condition = condition;
         }
 
         public ERACodeRepeatSegment(string condition, IEnumerable<ERACode> codeBlock)
-            : base("REPEAT {condition}", $"REND", codeBlock)
+            : base($"REPEAT {condition}", $"REND", codeBlock)
         {
             Condition = condition;
         }

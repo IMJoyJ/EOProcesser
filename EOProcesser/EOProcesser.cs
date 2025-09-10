@@ -1575,7 +1575,7 @@ namespace EOProcesser
                             {
                                 if (node.Tag is ERACode code)
                                 {
-                                    if (!rogueWritten && checkIsRogueCard.Checked && code.ToString().StartsWith("PRINTL"))
+                                    if (!rogueWritten && checkIsRogueCard.Checked && code.ToString().TrimStart().StartsWith("PRINTL"))
                                     {
                                         explanationFunc.Add(@"CALL TEXT_DECORATION(""ROGUE"")");
                                         rogueWritten = true;
@@ -1742,7 +1742,7 @@ namespace EOProcesser
                         int i = 0;
                         foreach (var c in listCategory.Items)
                         {
-                            categories.AppendLine($"        RESULTS:{i} = {c}");
+                            categories.AppendLine($"\t\tRESULTS:{i} = {c}");
                             i++;
                         }
                         return $"""
@@ -1754,11 +1754,11 @@ namespace EOProcesser
                         VARSET RESULTS
 
                         SELECTCASE 参照先
-                            CASE "名前"
-                                RESULTS = {txtCardName.Text}
-                            CASE "略称"
-                                RESULTS = {txtShortName.Text}
-                            CASE "カテゴリ"
+                        {"\t"}CASE "名前"
+                        {"\t\t"}RESULTS = {txtCardName.Text}
+                        {"\t"}CASE "略称"
+                        {"\t\t"}RESULTS = {txtShortName.Text}
+                        {"\t"}CASE "カテゴリ"
                         {categories}
                         ENDSELECT
 
@@ -1822,7 +1822,7 @@ namespace EOProcesser
                                 #DIM DYNAMIC 種類
                                 #DIM DYNAMIC 場所
 
-                                CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,2585)
+                                CALL CARD_NEGATE(決闘者,種類,ゾーン,場所,{CurrentCard.CardId})
                                 SIF RESULT == 1
                                     RETURN 0
                                 

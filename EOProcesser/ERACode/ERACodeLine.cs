@@ -47,7 +47,7 @@ namespace EOProcesser
         public override string ToString()
         {
             string indentation = new('\t', Indentation);
-            return indentation + CodeLine.TrimStart();
+            return indentation + CodeLine.TrimStart() + "\r\n";
         }
     }
 
@@ -64,9 +64,9 @@ namespace EOProcesser
         public override bool CanParse(string line) => true; // 通用行总是可以解析
     }
 
-    public class ERACodeCommentLine : ERACodeLine
+    public partial class ERACodeCommentLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*;(.*)$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = CommentRegex();
         
         public string Comment { get; private set; }
 
@@ -92,12 +92,14 @@ namespace EOProcesser
         }
 
         public override string GetNodeText() => $"(コメント){Comment}";
+        [GeneratedRegex(@"^\s*;(.*)$", RegexOptions.Compiled)]
+        private static partial Regex CommentRegex();
     }
 
-    public class ERACodePrintLine : ERACodeLine
+    public partial class ERACodePrintLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*PRINT([A-Z_]+)?\s+(.*)$", RegexOptions.Compiled);
-        private static readonly Regex _printlPattern = new(@"^\s*PRINTL\s*$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = PrintRegex();
+        private static readonly Regex _printlPattern = PrintLRegex();
         
         public string? PrintType { get; private set; }
         public string? Content { get; private set; }
@@ -139,11 +141,15 @@ namespace EOProcesser
         }
 
         public override string GetNodeText() => $"(PRINT{PrintType}) {Content ?? ""}";
+        [GeneratedRegex(@"^\s*PRINT([A-Z_]+)?\s+(.*)$", RegexOptions.Compiled)]
+        private static partial Regex PrintRegex();
+        [GeneratedRegex(@"^\s*PRINTL\s*$", RegexOptions.Compiled)]
+        private static partial Regex PrintLRegex();
     }
 
-    public class ERACodeDimLine : ERACodeLine
+    public partial class ERACodeDimLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*#DIM\s+(?:(DYNAMIC|SAVEDATA)\s+)?(\S.*)$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = DimRegex();
         
         public string VarName { get; private set; }
         public string? VarScope { get; private set; }
@@ -183,11 +189,14 @@ namespace EOProcesser
             };
             return $"(変数宣言){scopeText}{VarName}";
         }
+
+        [GeneratedRegex(@"^\s*#DIM\s+(?:(DYNAMIC|SAVEDATA)\s+)?(\S.*)$", RegexOptions.Compiled)]
+        private static partial Regex DimRegex();
     }
 
-    public class ERACodeDimsLine : ERACodeLine
+    public partial class ERACodeDimsLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*#DIMS\s+(?:(DYNAMIC|SAVEDATA)\s+)?(\S+?)(?:\s*,\s*(\d+))?\s*$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = DimsRegex();
         
         public string VarName { get; private set; }
         public string? VarScope { get; private set; }
@@ -232,11 +241,14 @@ namespace EOProcesser
 
             return $"(文字列宣言){scopeText}{VarName}{lengthText}";
         }
+
+        [GeneratedRegex(@"^\s*#DIMS\s+(?:(DYNAMIC|SAVEDATA)\s+)?(\S+?)(?:\s*,\s*(\d+))?\s*$", RegexOptions.Compiled)]
+        private static partial Regex DimsRegex();
     }
 
-    public class ERACodeGotoLine : ERACodeLine
+    public partial class ERACodeGotoLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*GOTO[ ]+(.+)$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = GotoRegex();
         
         public string LabelName { get; private set; }
 
@@ -265,11 +277,13 @@ namespace EOProcesser
         }
 
         public override string GetNodeText() => $"(跳躍)→{LabelName}";
+        [GeneratedRegex(@"^\s*GOTO[ ]+(.+)$", RegexOptions.Compiled)]
+        private static partial Regex GotoRegex();
     }
 
-    public class ERACodeLabelLine : ERACodeLine
+    public partial class ERACodeLabelLine : ERACodeLine
     {
-        private static readonly Regex _pattern = new(@"^\s*\$(.+)$", RegexOptions.Compiled);
+        private static readonly Regex _pattern = LabelRegex();
         
         public string LabelName { get; private set; }
 
@@ -298,6 +312,8 @@ namespace EOProcesser
         }
 
         public override string GetNodeText() => $"(識別子){LabelName}";
+        [GeneratedRegex(@"^\s*\$(.+)$", RegexOptions.Compiled)]
+        private static partial Regex LabelRegex();
     }
 
     // 工厂类用于创建适当的ERACodeLine实例
