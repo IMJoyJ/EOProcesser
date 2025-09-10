@@ -1,4 +1,5 @@
-﻿namespace EOProcesser
+﻿using EOProcesser.UserControls;
+namespace EOProcesser
 {
     partial class DeckEditor
     {
@@ -43,26 +44,7 @@
             tabExtraFuncs = new TabPage();
             txtExtraFunctions = new TextBox();
             tabDeckEditor = new TabPage();
-            btnCopyCode = new Button();
-            btnExportToFile = new Button();
-            btnLoadDeckFromFile = new Button();
-            label2 = new Label();
-            txtDeckName = new TextBox();
-            label1 = new Label();
-            numDeckId = new NumericUpDown();
-            btnSearchCard = new Button();
-            txtSearchCard = new TextBox();
-            btnRemoveFromExtraDeck = new Button();
-            btnMinus1ToExtraDeck = new Button();
-            btnMinus1ToMainDeck = new Button();
-            btnRemoveFromMainDeck = new Button();
-            btnAddToExtraDeck = new Button();
-            btnAddToMainDeck = new Button();
-            lbExtraDeckCount = new Label();
-            lbMainDeckCount = new Label();
-            listExtraDeck = new ListBox();
-            listMainDeck = new ListBox();
-            listCardDictionary = new ListBox();
+            sdeDeckEditor = new SingleDeckEditor();
             ((System.ComponentModel.ISupportInitialize)mainContainer).BeginInit();
             mainContainer.Panel1.SuspendLayout();
             mainContainer.Panel2.SuspendLayout();
@@ -71,7 +53,6 @@
             tabDeckSelection.SuspendLayout();
             tabExtraFuncs.SuspendLayout();
             tabDeckEditor.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)numDeckId).BeginInit();
             SuspendLayout();
             // 
             // mainContainer
@@ -239,26 +220,7 @@
             // 
             // tabDeckEditor
             // 
-            tabDeckEditor.Controls.Add(btnCopyCode);
-            tabDeckEditor.Controls.Add(btnExportToFile);
-            tabDeckEditor.Controls.Add(btnLoadDeckFromFile);
-            tabDeckEditor.Controls.Add(label2);
-            tabDeckEditor.Controls.Add(txtDeckName);
-            tabDeckEditor.Controls.Add(label1);
-            tabDeckEditor.Controls.Add(numDeckId);
-            tabDeckEditor.Controls.Add(btnSearchCard);
-            tabDeckEditor.Controls.Add(txtSearchCard);
-            tabDeckEditor.Controls.Add(btnRemoveFromExtraDeck);
-            tabDeckEditor.Controls.Add(btnMinus1ToExtraDeck);
-            tabDeckEditor.Controls.Add(btnMinus1ToMainDeck);
-            tabDeckEditor.Controls.Add(btnRemoveFromMainDeck);
-            tabDeckEditor.Controls.Add(btnAddToExtraDeck);
-            tabDeckEditor.Controls.Add(btnAddToMainDeck);
-            tabDeckEditor.Controls.Add(lbExtraDeckCount);
-            tabDeckEditor.Controls.Add(lbMainDeckCount);
-            tabDeckEditor.Controls.Add(listExtraDeck);
-            tabDeckEditor.Controls.Add(listMainDeck);
-            tabDeckEditor.Controls.Add(listCardDictionary);
+            tabDeckEditor.Controls.Add(sdeDeckEditor);
             tabDeckEditor.Location = new Point(4, 24);
             tabDeckEditor.Name = "tabDeckEditor";
             tabDeckEditor.Size = new Size(349, 365);
@@ -266,211 +228,14 @@
             tabDeckEditor.Text = "デッキ編集";
             tabDeckEditor.UseVisualStyleBackColor = true;
             // 
-            // btnCopyCode
+            // sdeDeckEditor
             // 
-            btnCopyCode.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnCopyCode.Location = new Point(3, 332);
-            btnCopyCode.Name = "btnCopyCode";
-            btnCopyCode.Size = new Size(151, 23);
-            btnCopyCode.TabIndex = 12;
-            btnCopyCode.Text = "コードをコピーする";
-            btnCopyCode.UseVisualStyleBackColor = true;
-            btnCopyCode.Click += btnCopyCode_Click;
-            // 
-            // btnExportToFile
-            // 
-            btnExportToFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnExportToFile.Location = new Point(79, 303);
-            btnExportToFile.Name = "btnExportToFile";
-            btnExportToFile.Size = new Size(75, 23);
-            btnExportToFile.TabIndex = 12;
-            btnExportToFile.Text = "ファイル出力";
-            btnExportToFile.UseVisualStyleBackColor = true;
-            btnExportToFile.Click += btnExportToFile_Click;
-            // 
-            // btnLoadDeckFromFile
-            // 
-            btnLoadDeckFromFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnLoadDeckFromFile.Location = new Point(3, 303);
-            btnLoadDeckFromFile.Name = "btnLoadDeckFromFile";
-            btnLoadDeckFromFile.Size = new Size(75, 23);
-            btnLoadDeckFromFile.TabIndex = 12;
-            btnLoadDeckFromFile.Text = "ファイル読込";
-            btnLoadDeckFromFile.UseVisualStyleBackColor = true;
-            btnLoadDeckFromFile.Click += btnLoadDeckFromFile_Click;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(169, 44);
-            label2.Name = "label2";
-            label2.Size = new Size(45, 15);
-            label2.TabIndex = 11;
-            label2.Text = "デッキ名";
-            // 
-            // txtDeckName
-            // 
-            txtDeckName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtDeckName.Location = new Point(220, 41);
-            txtDeckName.Name = "txtDeckName";
-            txtDeckName.Size = new Size(121, 23);
-            txtDeckName.TabIndex = 10;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(193, 14);
-            label1.Name = "label1";
-            label1.Size = new Size(18, 15);
-            label1.TabIndex = 9;
-            label1.Text = "ID";
-            // 
-            // numDeckId
-            // 
-            numDeckId.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            numDeckId.Location = new Point(220, 12);
-            numDeckId.Maximum = new decimal(new int[] { 10000000, 0, 0, 0 });
-            numDeckId.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            numDeckId.Name = "numDeckId";
-            numDeckId.Size = new Size(121, 23);
-            numDeckId.TabIndex = 8;
-            numDeckId.Value = new decimal(new int[] { 1, 0, 0, 0 });
-            // 
-            // btnSearchCard
-            // 
-            btnSearchCard.Location = new Point(111, 10);
-            btnSearchCard.Name = "btnSearchCard";
-            btnSearchCard.Size = new Size(43, 22);
-            btnSearchCard.TabIndex = 7;
-            btnSearchCard.Text = "検索";
-            btnSearchCard.UseVisualStyleBackColor = true;
-            btnSearchCard.Click += btnSearchCard_Click;
-            // 
-            // txtSearchCard
-            // 
-            txtSearchCard.Location = new Point(3, 10);
-            txtSearchCard.Name = "txtSearchCard";
-            txtSearchCard.Size = new Size(102, 23);
-            txtSearchCard.TabIndex = 6;
-            txtSearchCard.KeyDown += txtSearchCard_KeyDown;
-            // 
-            // btnRemoveFromExtraDeck
-            // 
-            btnRemoveFromExtraDeck.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnRemoveFromExtraDeck.Location = new Point(160, 286);
-            btnRemoveFromExtraDeck.Name = "btnRemoveFromExtraDeck";
-            btnRemoveFromExtraDeck.Size = new Size(27, 23);
-            btnRemoveFromExtraDeck.TabIndex = 5;
-            btnRemoveFromExtraDeck.Text = "←";
-            btnRemoveFromExtraDeck.UseVisualStyleBackColor = true;
-            btnRemoveFromExtraDeck.Click += btnRemoveFromExtraDeck_Click;
-            // 
-            // btnMinus1ToExtraDeck
-            // 
-            btnMinus1ToExtraDeck.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnMinus1ToExtraDeck.Location = new Point(160, 315);
-            btnMinus1ToExtraDeck.Name = "btnMinus1ToExtraDeck";
-            btnMinus1ToExtraDeck.Size = new Size(27, 23);
-            btnMinus1ToExtraDeck.TabIndex = 5;
-            btnMinus1ToExtraDeck.Text = "-1";
-            btnMinus1ToExtraDeck.UseVisualStyleBackColor = true;
-            btnMinus1ToExtraDeck.Click += btnMinus1ToExtraDeck_Click;
-            // 
-            // btnMinus1ToMainDeck
-            // 
-            btnMinus1ToMainDeck.Location = new Point(160, 172);
-            btnMinus1ToMainDeck.Name = "btnMinus1ToMainDeck";
-            btnMinus1ToMainDeck.Size = new Size(27, 23);
-            btnMinus1ToMainDeck.TabIndex = 5;
-            btnMinus1ToMainDeck.Text = "-1";
-            btnMinus1ToMainDeck.UseVisualStyleBackColor = true;
-            btnMinus1ToMainDeck.Click += btnMinus1ToMainDeck_Click;
-            // 
-            // btnRemoveFromMainDeck
-            // 
-            btnRemoveFromMainDeck.Location = new Point(160, 143);
-            btnRemoveFromMainDeck.Name = "btnRemoveFromMainDeck";
-            btnRemoveFromMainDeck.Size = new Size(27, 23);
-            btnRemoveFromMainDeck.TabIndex = 5;
-            btnRemoveFromMainDeck.Text = "←";
-            btnRemoveFromMainDeck.UseVisualStyleBackColor = true;
-            btnRemoveFromMainDeck.Click += btnRemoveFromMainDeck_Click;
-            // 
-            // btnAddToExtraDeck
-            // 
-            btnAddToExtraDeck.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAddToExtraDeck.Location = new Point(160, 257);
-            btnAddToExtraDeck.Name = "btnAddToExtraDeck";
-            btnAddToExtraDeck.Size = new Size(27, 23);
-            btnAddToExtraDeck.TabIndex = 5;
-            btnAddToExtraDeck.Text = "→";
-            btnAddToExtraDeck.UseVisualStyleBackColor = true;
-            btnAddToExtraDeck.Click += btnAddToExtraDeck_Click;
-            // 
-            // btnAddToMainDeck
-            // 
-            btnAddToMainDeck.Location = new Point(160, 114);
-            btnAddToMainDeck.Name = "btnAddToMainDeck";
-            btnAddToMainDeck.Size = new Size(27, 23);
-            btnAddToMainDeck.TabIndex = 5;
-            btnAddToMainDeck.Text = "→";
-            btnAddToMainDeck.UseVisualStyleBackColor = true;
-            btnAddToMainDeck.Click += btnAddToMainDeck_Click;
-            // 
-            // lbExtraDeckCount
-            // 
-            lbExtraDeckCount.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            lbExtraDeckCount.AutoSize = true;
-            lbExtraDeckCount.Location = new Point(193, 215);
-            lbExtraDeckCount.Name = "lbExtraDeckCount";
-            lbExtraDeckCount.Size = new Size(67, 15);
-            lbExtraDeckCount.TabIndex = 4;
-            lbExtraDeckCount.Text = "現在枚数：";
-            // 
-            // lbMainDeckCount
-            // 
-            lbMainDeckCount.AutoSize = true;
-            lbMainDeckCount.Location = new Point(193, 68);
-            lbMainDeckCount.Name = "lbMainDeckCount";
-            lbMainDeckCount.Size = new Size(67, 15);
-            lbMainDeckCount.TabIndex = 3;
-            lbMainDeckCount.Text = "現在枚数：";
-            // 
-            // listExtraDeck
-            // 
-            listExtraDeck.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            listExtraDeck.FormattingEnabled = true;
-            listExtraDeck.ItemHeight = 15;
-            listExtraDeck.Location = new Point(193, 233);
-            listExtraDeck.Name = "listExtraDeck";
-            listExtraDeck.SelectionMode = SelectionMode.MultiExtended;
-            listExtraDeck.Size = new Size(153, 124);
-            listExtraDeck.TabIndex = 2;
-            listExtraDeck.DoubleClick += listExtraDeck_DoubleClick;
-            listExtraDeck.KeyDown += listExtraDeck_KeyDown;
-            // 
-            // listMainDeck
-            // 
-            listMainDeck.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            listMainDeck.FormattingEnabled = true;
-            listMainDeck.ItemHeight = 15;
-            listMainDeck.Location = new Point(193, 86);
-            listMainDeck.Name = "listMainDeck";
-            listMainDeck.SelectionMode = SelectionMode.MultiExtended;
-            listMainDeck.Size = new Size(153, 124);
-            listMainDeck.TabIndex = 1;
-            listMainDeck.DoubleClick += listMainDeck_DoubleClick;
-            listMainDeck.KeyDown += listMainDeck_KeyDown;
-            // 
-            // listCardDictionary
-            // 
-            listCardDictionary.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            listCardDictionary.FormattingEnabled = true;
-            listCardDictionary.ItemHeight = 15;
-            listCardDictionary.Location = new Point(3, 38);
-            listCardDictionary.Name = "listCardDictionary";
-            listCardDictionary.Size = new Size(151, 259);
-            listCardDictionary.TabIndex = 0;
+            sdeDeckEditor.Dock = DockStyle.Fill;
+            sdeDeckEditor.Location = new Point(0, 0);
+            sdeDeckEditor.Name = "sdeDeckEditor";
+            sdeDeckEditor.Size = new Size(349, 365);
+            sdeDeckEditor.TabIndex = 0;
+            sdeDeckEditor.OnDeckChanged += sdeDeckEditor_OnDeckChanged;
             // 
             // DeckEditor
             // 
@@ -489,8 +254,6 @@
             tabExtraFuncs.ResumeLayout(false);
             tabExtraFuncs.PerformLayout();
             tabDeckEditor.ResumeLayout(false);
-            tabDeckEditor.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)numDeckId).EndInit();
             ResumeLayout(false);
         }
 
@@ -508,28 +271,9 @@
         private ListBox listDeckList;
         private TreeView tvFolder;
         private TabPage tabDeckEditor;
-        private ListBox listCardDictionary;
-        private Button btnRemoveFromExtraDeck;
-        private Button btnRemoveFromMainDeck;
-        private Button btnAddToExtraDeck;
-        private Button btnAddToMainDeck;
-        private Label lbExtraDeckCount;
-        private Label lbMainDeckCount;
-        private ListBox listExtraDeck;
-        private ListBox listMainDeck;
-        private Button btnSearchCard;
-        private TextBox txtSearchCard;
-        private Label label2;
-        private TextBox txtDeckName;
-        private Label label1;
-        private NumericUpDown numDeckId;
         private Button btnSave;
         private TextBox txtExtraFunctions;
-        private Button btnMinus1ToMainDeck;
-        private Button btnMinus1ToExtraDeck;
-        private Button btnExportToFile;
-        private Button btnLoadDeckFromFile;
-        private Button btnCopyCode;
         private Button btnOutputCode;
+        private SingleDeckEditor sdeDeckEditor;
     }
 }
