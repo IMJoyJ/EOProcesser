@@ -208,14 +208,14 @@ namespace EOProcesser.Models
             bool reset = false;
             foreach (var cardId in MainDeckContent)
             {
-                segment.Add($"SETVAR @\"%決闘者%_デッキ:POOL_COUNT({(reset ? 0 : 1)})\", 2171");
+                segment.Add($"SETVAR @\"%決闘者%_デッキ:POOL_COUNT({(reset ? 0 : 1)})\", {cardId}");
                 reset = true;
             }
             segment.Add("");
             reset = false;
             foreach (var cardId in ExtraDeckContent)
             {
-                segment.Add($"SETVAR @\"%決闘者%_EXデッキ:POOL_COUNT({(reset ? 0 : 1)})\", 2171");
+                segment.Add($"SETVAR @\"%決闘者%_EXデッキ:POOL_COUNT({(reset ? 0 : 1)})\", {cardId}");
                 reset = true;
             }
             segment.Add("");
